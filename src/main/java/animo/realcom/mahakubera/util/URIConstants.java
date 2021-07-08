@@ -10,4 +10,6 @@ public class URIConstants {
 	
 	public static final String SAVE_GODI = "/save-jodi";
 	
+	public static final String RECENT_JODI_GAME_DRAW_RESULT = "/recentJodiGameDrawResult";
+	
 }

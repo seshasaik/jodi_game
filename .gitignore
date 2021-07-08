@@ -31,3 +31,9 @@ build/
 
 ### VS Code ###
 .vscode/
+/hs_err_pid5396.log
+/mvnw
+/mvnw.cmd
+/MavenWrapperDownloader.java
+/maven-wrapper.jar
+/maven-wrapper.properties
