@@ -322,7 +322,7 @@ public class VendorServiceImpl implements VendorService {
 					tw.setTransactionCodes(transactionCodes.getCode());
 
 					tw.setUniqueId(
-							ApplicationUtil.utcToAsiaTimeZone(ApplicationUtil.getUTCTime()) + id + contotalamount);
+							ApplicationUtil.utcToAsiaTimeZone(ApplicationUtil.getUTCTime()) + id + contotalamount + "DEBT");
 					int transaction_id = transactionsService.saveTransaction(tw);
 					System.out.println("check transaction" + transaction_id);
 
@@ -343,7 +343,7 @@ public class VendorServiceImpl implements VendorService {
 					tw.setPurpose("Vendor Profit Added By Subvendor(" + vendorid + ")");
 					String jorole1 = appConstantsConfig.getValue(AppConstants.ROLE_RMBA);
 					tw.setUniqueId(
-							ApplicationUtil.utcToAsiaTimeZone(ApplicationUtil.getUTCTime()) + id + contotalamount);
+							ApplicationUtil.utcToAsiaTimeZone(ApplicationUtil.getUTCTime()) + id + contotalamount+ "CRDT");
 					tw.setTransactionCodes("VPA");
 					transactionsService.saveTransaction(tw);
 				}

@@ -25,7 +25,8 @@ public class ProfileContoller {
 
 	@GetMapping(path = "/profile")
 	public UserDetailsDTO getProfile() {
-		return userDetailsFacade.getUserDetails();
+		UserDetailsDTO userDetailsDTO = userDetailsFacade.getUserDetails();
+		return userDetailsDTO;
 	}
 
 }

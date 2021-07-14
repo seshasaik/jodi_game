@@ -6,7 +6,7 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.env.Environment;
 
 @Configuration
-@PropertySource("maha-kubera-constants.properties")
+@PropertySource("classpath:maha-kubera-constants.properties")
 public class AppConstantsConfig {
 
 	@Autowired
