@@ -9,6 +9,8 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonProperty.Access;
 
@@ -17,6 +19,8 @@ import lombok.Builder;
 import lombok.Data;
 
 @Data
+@Builder
+@JsonInclude(content = Include.NON_NULL)
 public class UserDetailsDTO implements UserDetails {
 
 	/**
@@ -28,14 +32,11 @@ public class UserDetailsDTO implements UserDetails {
 	private List<String> userRoles;
 	@JsonProperty(access = Access.WRITE_ONLY)
 	private String password;
-	
+
 	private UserType userType;
+	private boolean enabled;
 
 	private static final long serialVersionUID = 1L;
-
-	public UserDetailsDTO() {
-		// TODO Auto-generated constructor stub
-	}
 
 	@Override
 	@JsonIgnore
@@ -81,7 +82,7 @@ public class UserDetailsDTO implements UserDetails {
 	@JsonIgnore
 	public boolean isEnabled() {
 		// TODO Auto-generated method stub
-		return true;
+		return enabled;
 	}
 
 }

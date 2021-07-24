@@ -1,0 +1,121 @@
+roles
+
+	id int(11) primary_key auto_increment,
+	name varchar(50),
+	shortDesc varchar(250)
+	
+
+user
+
+	id	int(11) primary_key auto_increment,
+	userName varchar(50) unique	
+	password varchar(250)
+	enabled int default 1
+	lastLogin date_time
+
+user_roles
+
+	user_id int foreign_key user(id),
+	role_id int foreign_key role(id)
+
+	
+user_details
+
+	id	int(11) primary_key auto_increment,
+	fistName	varchar(50)
+	lastName	varchar(50)
+	date_of_birth date
+	gender	char(3)
+	mobile	varchar(20)
+	email_id	varchar(80)
+	date_of_register date_time
+	remarks	varchar(50)
+	user_id foreign_key user(id)
+	gstn
+	pan
+	aadhar
+
+user_address
+	//for now skip this one
+
+// Root company table
+company
+
+	id int(11) primary_key auto_increment,
+	name varchar(50)
+	code varchar(15)
+	date_of_register date_time
+	ticket_rate  decimal(5,2)
+	max_quantity int,
+	winning_prize_amount decimal(7,2),
+	parent_company int(11)
+	
+	status int
+
+//company level timing
+game_jodi_timings
+	
+	id int primary_key auto_increment,
+	start_time time,
+	end_time time,
+	duration int
+	duration_unit varchar(50),
+	description varchar(150),
+	created date_time,
+	updated date_time,
+	company_id int foreign_key company(id)
+
+//user wise company level
+game_jodi_companies
+
+	user_id int foreign_key users(id),
+	company_id int foreign_key company(id),
+	status int
+	primary key(user_id, company_id)
+	
+// Stores each day level for a user level company 
+game_jodi_ticket
+
+	id int(11) auto_increment primary_key
+	ticket_no varchar(50) unique,
+	start_time time,
+	end_time time,
+	winning_numbers varchar(250),
+	user_id int ,
+	company_id int,
+	created date_time,
+	updated date_time,
+	
+	foreign_key game_jodi_companies(user_id, company_id),
+
+//Here actual purchsed tickets with lattory numbers maintained	
+game_jodi_ticket_transactions
+	
+	id int(11) auto_increment primary_key,
+	ticket_no int(11) foreign_key game_jodi_ticket(id),
+	lattery_no_map varchar(3500),
+	total_quantity int,
+	ticket_rate  decimal(5,2),
+	total_amount decimal(5,2),
+	created date_time,
+	canceled date_time,
+	status int foreign_key transaction_status_codes(id)
+	
+transaction_status_codes
+	id int auto_increment primary_key,
+	code char(5) unique,
+	description varchar(150),
+	status int,
+	
+	
+	
+	
+	
+	
+
+
+
+	
+
+
+

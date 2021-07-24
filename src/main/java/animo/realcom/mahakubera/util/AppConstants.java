@@ -41,4 +41,5 @@ public class AppConstants {
 	public static final String ROLE_TNCM = "teen.claim";
 
 	public static final String USER_TYPE_LABEL = "userType";
+	public static final int ENABLED_NUMBER = 1;
 }

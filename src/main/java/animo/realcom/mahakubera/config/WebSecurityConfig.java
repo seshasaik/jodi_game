@@ -66,6 +66,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 		httpSecurity.csrf().disable()
 				// dont authenticate this particular request
 				.authorizeRequests().antMatchers(URIConstants.VERSION + URIConstants.LOGIN).permitAll().
+				antMatchers(URIConstants.VERSION + URIConstants.RECENT_JODI_GAME_DRAW_RESULT).permitAll().
 				// all other requests need to be authenticated
 				anyRequest().authenticated().and().
 				// make sure we use stateless session; session won't be used to

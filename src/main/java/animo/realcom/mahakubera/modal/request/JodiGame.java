@@ -32,5 +32,8 @@ public class JodiGame {
 	private String quantity;
 	private String total;
 	private Map<String, Integer> ticketDetails;
+	
+	private String jokerQuantity;
+	private int jokerHitCount;
 
 }

@@ -33,12 +33,4 @@ public class VendorController {
 		return ResponseEntity.ok(game);
 	}
 
-	@ExceptionHandler()
-	public ResponseEntity<ErrorResponse> exceptionHandler(Exception e) {
-		ErrorResponse errResponse = new ErrorResponse();
-		errResponse.setMessage(e.getMessage());
-		errResponse.setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR.name());
-		return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errResponse);
-	}
-
 }

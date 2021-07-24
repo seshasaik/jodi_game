@@ -1,15 +1,18 @@
 package animo.realcom.mahakubera.modal.response;
 
+import java.time.LocalDateTime;
+
+import lombok.Builder;
 import lombok.Data;
 
 @Data
+@Builder
 public class ErrorResponse {
 
-	public ErrorResponse() {
-		// TODO Auto-generated constructor stub
-	}
-
-	private String statusCode;
-	private String message;
+	private String status;
+	private String error;
+	private String developerMessage;
+	private String userMessage;
+	private LocalDateTime timestamp;
 
 }

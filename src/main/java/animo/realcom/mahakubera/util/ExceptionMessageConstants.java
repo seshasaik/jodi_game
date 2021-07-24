@@ -2,12 +2,12 @@ package animo.realcom.mahakubera.util;
 
 public class ExceptionMessageConstants {
 
-	public  static final  String ERROR_COMMON_MSG_ERCM000001 = "ERROR-COMMON-MSG-ERCM000001"; 
-	
-	public ExceptionMessageConstants() {
-		// TODO Auto-generated constructor stub
-	}
-	
-	
+	public static final String ERROR_COMMON_MSG_ERCM000001 = "ERROR-COMMON-MSG_ER001001";
+
+	public static final String LOGIN_ACOUNT_INVALID = "ERROR-LOGIN-INVALID_ER000001";
+	public static final String LOGIN_ACOUNT_LOCKED = "ERROR-LOGIN-ACOUNT-LOCKED_ER000002";
+
+	public static final String VENDOR_NOT_FOUND = "ERROR-VENDOR-NOT-FOUND_ER002001";
+	public static final String VENDOR_ACOUNT_LOCKED = "ERROR-VENDOR-ACOUNT-LOCKED_ER002002";
 
 }

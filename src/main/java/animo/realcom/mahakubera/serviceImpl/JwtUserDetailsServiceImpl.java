@@ -11,6 +11,7 @@ import animo.realcom.mahakubera.modal.UserDetailsDTO;
 import animo.realcom.mahakubera.service.JwtUserDetailsService;
 import animo.realcom.mahakubera.service.UserDetailsFacade;
 import animo.realcom.mahakubera.util.ContextUtil;
+import animo.realcom.mahakubera.util.UserType;
 
 @Service
 public class JwtUserDetailsServiceImpl implements JwtUserDetailsService {
@@ -29,9 +30,10 @@ public class JwtUserDetailsServiceImpl implements JwtUserDetailsService {
 	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
 		// TODO Auto-generated method stub
 		ContextUtil.Context contex = contextUtil.getContext();
-		UserDetailsDTO userDetail = new UserDetailsDTO();
-		userDetail.setEmailId(username);
-		userDetail.setUserType(contex.getUserType());
+		UserDetailsDTO.UserDetailsDTOBuilder userDetailsDTOBuilder = UserDetailsDTO.builder();
+		userDetailsDTOBuilder.emailId(username);
+		userDetailsDTOBuilder.userType(contex.getUserType());
+		UserDetailsDTO userDetail = userDetailsDTOBuilder.build();
 		userDetail = userDetailsFacade.getUserDetails(userDetail);
 		if (Objects.nonNull(userDetail)) {
 			return userDetail;

@@ -1,7 +1,10 @@
 package animo.realcom.mahakubera.serviceImpl.vendor;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -13,30 +16,39 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import animo.realcom.mahakubera.config.AppConstantsConfig;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import animo.realcom.mahakubera.config.AbstractPropertiesReader;
+import animo.realcom.mahakubera.config.AppConstantsReader;
 import animo.realcom.mahakubera.entity.AdminWallet;
 import animo.realcom.mahakubera.entity.JodiCompanies;
+import animo.realcom.mahakubera.entity.JodiTicket;
+import animo.realcom.mahakubera.entity.JodiTicket.JodiTicketBuilder;
 import animo.realcom.mahakubera.entity.TransactionCodes;
 import animo.realcom.mahakubera.entity.Transactions;
 import animo.realcom.mahakubera.entity.VendorRegistration;
 import animo.realcom.mahakubera.entity.Wallet;
+import animo.realcom.mahakubera.exception.VendorNotFoundException;
 import animo.realcom.mahakubera.modal.request.JodiGame;
 import animo.realcom.mahakubera.repository.vendor.VendorRegistrationRepository;
 import animo.realcom.mahakubera.service.JodiCompanyService;
 import animo.realcom.mahakubera.service.TransactionsService;
 import animo.realcom.mahakubera.service.WalletService;
 import animo.realcom.mahakubera.service.admin.AdminService;
+import animo.realcom.mahakubera.service.jodiGame.JodiGameService;
 import animo.realcom.mahakubera.service.vendor.VendorService;
 import animo.realcom.mahakubera.util.AppConstants;
 import animo.realcom.mahakubera.util.ApplicationUtil;
+import animo.realcom.mahakubera.util.ExceptionMessageConstants;
 
 @Service
 public class VendorServiceImpl implements VendorService {
-	
+
 	Logger logger = LoggerFactory.getLogger(getClass());
 
 	@Autowired
-	VendorRegistrationRepository vendorRegistration;
+	VendorRegistrationRepository vendorRegistrationRepository;
 
 	@Autowired
 	AdminService adminService;
@@ -51,7 +63,13 @@ public class VendorServiceImpl implements VendorService {
 	JodiCompanyService jodiCompanyService;
 
 	@Autowired
-	AppConstantsConfig appConstantsConfig;
+	AbstractPropertiesReader appConstantsReader;
+
+	@Autowired
+	ObjectMapper objectMapper;
+
+	@Autowired
+	JodiGameService jodiGameService;
 
 	public VendorServiceImpl() {
 		// TODO Auto-generated constructor stub
@@ -59,6 +77,7 @@ public class VendorServiceImpl implements VendorService {
 
 	@Override
 	public JodiGame saveJodi(List<JodiGame> jodiGames) throws Exception {
+
 		String cancelminutes = ApplicationUtil.instantToZoneTimeMinutes(ApplicationUtil.getUTCTime());
 		int convertmin = Integer.parseInt(cancelminutes);
 
@@ -75,9 +94,9 @@ public class VendorServiceImpl implements VendorService {
 			// jodiGame.getAdvanceTimes().toArray();
 
 			String Email_Id = ApplicationUtil.getAuthenticationDetails().getEmailId();
-			vendor = vendorRegistration.findByVendorEmail(Email_Id);
+			vendor = vendorRegistrationRepository.findByVendorEmail(Email_Id);
 			Long id = vendor.getId();
-			String vendorrole = appConstantsConfig.getValue(AppConstants.ROLE_VENDOR);
+			String vendorrole = appConstantsReader.getValue(AppConstants.ROLE_VENDOR);
 
 			String currenthours = ApplicationUtil
 					.instantToZoneTimeAndDate24hoursonlyformat(ApplicationUtil.getUTCTime());
@@ -85,8 +104,8 @@ public class VendorServiceImpl implements VendorService {
 			final String jodiGameId = ApplicationUtil.getgameid(duration);
 			String starttime = ApplicationUtil.getstarttime(duration);
 			String drawtime = ApplicationUtil.getdrawtime(duration);
-
-			String datetime = ApplicationUtil.utcToAsiaTimeZone(ApplicationUtil.getUTCTime());
+			Instant instant = ApplicationUtil.getUTCTime();
+			String datetime = ApplicationUtil.utcToAsiaTimeZone(instant);
 
 			// Prepare company wise Map of data
 //			ObjectMapper mapper = new ObjectMapper();
@@ -109,6 +128,7 @@ public class VendorServiceImpl implements VendorService {
 			jodiGames = jodiGames.stream().map(jodiGame -> {
 
 				if (jodiGame.getAdvanceTimes().isEmpty()) {
+					updateJodiGameDto(jodiGame, id, vendorrole, jodiGameId, datetime, starttime, drawtime);
 					List<JodiGame> jodigameSingleList = new ArrayList<>();
 					jodigameSingleList.add(jodiGame);
 					return jodigameSingleList;
@@ -116,12 +136,8 @@ public class VendorServiceImpl implements VendorService {
 					return jodiGame.getAdvanceTimes().stream().map(advanceDrawTime -> {
 						String advanceDuration = adminService.fetchingDuration(advanceDrawTime.split(":")[0]);
 						String advanceStartTime = ApplicationUtil.getstarttime(advanceDuration);
-						jodiGame.setRegId(id);
-						jodiGame.setRole(vendorrole);
-						jodiGame.setGameId(jodiGameId);
-						jodiGame.setDateTime(datetime);
-						jodiGame.setStartTime(advanceStartTime);
-						jodiGame.setDrawTime(advanceDrawTime);
+						updateJodiGameDto(jodiGame, id, vendorrole, jodiGameId, datetime, advanceStartTime,
+								advanceDrawTime);
 						return jodiGame;
 					}).collect(Collectors.toList());
 				}
@@ -130,7 +146,8 @@ public class VendorServiceImpl implements VendorService {
 						.filter(p -> p.getCompanyCode().equalsIgnoreCase(jodiGame.getCompany())
 								|| p.getCompanyCode().concat(p.getCloseCompanyCode()).equals(jodiGame.getCompany()))
 						.findAny().get();
-				jodiGame.setTotalQuantity(Integer.toString(jodiGame.getTicketDetails().entrySet().stream().mapToInt(e -> e.getValue()).sum()));
+				jodiGame.setTotalQuantity(Integer
+						.toString(jodiGame.getTicketDetails().entrySet().stream().mapToInt(e -> e.getValue()).sum()));
 				// total for the company
 				double total = ApplicationUtil.stringToDouble(jodiGame.getTotalQuantity())
 						* ApplicationUtil.stringToDouble(jodiCompany.getCompanyTicketPrice());
@@ -142,6 +159,32 @@ public class VendorServiceImpl implements VendorService {
 				jodiGame.setTotalAmount(ApplicationUtil.doubleToString(total));
 				return jodiGame;
 			}).collect(Collectors.toList());
+
+			List<JodiTicket> jodiTickets = jodiGames.stream().map(jodiGameDto -> {
+				JodiTicketBuilder jodiTicketBuider = JodiTicket.builder();
+				jodiTicketBuider.regId(String.valueOf(jodiGameDto.getRegId()));
+				jodiTicketBuider.company(jodiGameDto.getCompany());
+				jodiTicketBuider.gameId(jodiGameDto.getGameId());
+
+				jodiTicketBuider.issueTime(jodiGameDto.getStartTime()).ticketId(jodiGameDto.getBarId());
+				try {
+					jodiTicketBuider.puttingNumber(objectMapper.writeValueAsString(jodiGameDto.getTicketDetails()));
+				} catch (JsonProcessingException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				jodiTicketBuider.dateTime(LocalDateTime.now());
+				jodiTicketBuider.amount(jodiGameDto.getTotalAmount()).drawTime(jodiGameDto.getDrawTime())
+						.roles(jodiGameDto.getRole());
+				jodiTicketBuider.ticketStatus("1").winningAmount(jodiGameDto.getWinningAmount())
+						.quantity(jodiGameDto.getTotalQuantity());
+				jodiTicketBuider.jokerQuantity(jodiGameDto.getJokerQuantity())
+						.jokerHitCount(jodiGameDto.getJokerHitCount());
+
+				return jodiTicketBuider.build();
+			}).collect(Collectors.toList());
+			jodiTickets = jodiGameService.saveJodiTicket(jodiTickets);
+			logger.info(jodiTickets.toString());
 
 			/*
 			 * if (!jodiGame.getAdvanceTimes().isEmpty()) { for (String advanceDrawTime :
@@ -182,8 +225,8 @@ public class VendorServiceImpl implements VendorService {
 			 * if (!advanceTimes.isEmpty()) { joditotalAmount = joditotalAmount *
 			 * advanceTimeArray.length; }
 			 */
-			double joditotalAmount = jodiGames.stream().mapToDouble(j -> ApplicationUtil.stringToDouble(j.getTotalAmount()))
-					.sum();
+			double joditotalAmount = jodiGames.stream()
+					.mapToDouble(j -> ApplicationUtil.stringToDouble(j.getTotalAmount())).sum();
 			// save transaction tables and admin wallet
 			double totalAmount = Math.round(joditotalAmount * 100D) / 100D;
 			System.out.println(totalAmount);
@@ -209,9 +252,10 @@ public class VendorServiceImpl implements VendorService {
 
 			// check subvendor or normal vendor
 			VendorRegistration vendorRegistration = getVendorRegistration(id);
-			Long vendorid = Objects.nonNull(vendorRegistration.getSubVendorStatus()) && vendorRegistration.getSubVendorStatus().equals("1")
-					? Long.parseLong(vendorRegistration.getApprovedVendor())
-					: 0L;
+			Long vendorid = Objects.nonNull(vendorRegistration.getSubVendorStatus())
+					&& vendorRegistration.getSubVendorStatus().equals("1")
+							? Long.parseLong(vendorRegistration.getApprovedVendor())
+							: 0L;
 			if (vendorid != 0L) {
 				System.out.println("this is subvendor");
 
@@ -245,7 +289,7 @@ public class VendorServiceImpl implements VendorService {
 					String std = ApplicationUtil.instantToZoneTimeDateSaving(ApplicationUtil.getUTCTime());
 					Transactions tw = new Transactions();
 					tw.setRegId(id.toString());
-					tw.setRole(appConstantsConfig.getValue(AppConstants.ROLE_VENDOR));
+					tw.setRole(appConstantsReader.getValue(AppConstants.ROLE_VENDOR));
 					tw.setCredit("0");
 					tw.setDebit(transtotalamount);
 					double walletamount = Double.parseDouble(amount);
@@ -254,15 +298,15 @@ public class VendorServiceImpl implements VendorService {
 					String contotalamount = Double.toString(totalamount);
 					tw.setTotal(contotalamount);
 
-					String jorole = appConstantsConfig.getValue(AppConstants.ROLE_JOP);
+					String jorole = appConstantsReader.getValue(AppConstants.ROLE_JOP);
 					TransactionCodes transactionCodes = transactionsService.getTransactionCodesByStatusCode(jorole);
 
 					tw.setPurpose(transactionCodes.getPurpose());
 					tw.setDateTime(LocalDateTime.now(ZoneId.of("Asia/Kolkata")));
 					tw.setTransactionCodes(transactionCodes.getCode());
 
-					tw.setUniqueId(
-							ApplicationUtil.utcToAsiaTimeZone(ApplicationUtil.getUTCTime()) + id + contotalamount+ "DEBT");
+					tw.setUniqueId(ApplicationUtil.utcToAsiaTimeZone(ApplicationUtil.getUTCTime()) + id + contotalamount
+							+ "DEBT");
 					int transaction_id = transactionsService.saveTransaction(tw);
 					System.out.println("check transaction" + transaction_id);
 
@@ -281,9 +325,9 @@ public class VendorServiceImpl implements VendorService {
 					tw.setDebit("0");
 					tw.setTotal(Double.toString(updateamount + vendorProfit));
 					tw.setPurpose("Vendor Profit Added By Subvendor(" + vendorid + ")");
-					tw.setUniqueId(
-							ApplicationUtil.utcToAsiaTimeZone(ApplicationUtil.getUTCTime()) + id + contotalamount + "CRDT");
-					String jorole1 = appConstantsConfig.getValue(AppConstants.ROLE_RMBA);
+					tw.setUniqueId(ApplicationUtil.utcToAsiaTimeZone(ApplicationUtil.getUTCTime()) + id + contotalamount
+							+ "CRDT");
+					String jorole1 = appConstantsReader.getValue(AppConstants.ROLE_RMBA);
 					tw.setTransactionCodes("VPA");
 					transactionsService.saveTransaction(tw);
 
@@ -296,7 +340,7 @@ public class VendorServiceImpl implements VendorService {
 
 				String remainingamount = Double.toString(updateamount);
 				wallet.setAmount(remainingamount);
-				wallet.setRole(appConstantsConfig.getValue(AppConstants.ROLE_VENDOR));
+				wallet.setRole(appConstantsReader.getValue(AppConstants.ROLE_VENDOR));
 
 				if (updateamount >= 0) {
 
@@ -305,7 +349,7 @@ public class VendorServiceImpl implements VendorService {
 					String std = ApplicationUtil.instantToZoneTimeDateSaving(ApplicationUtil.getUTCTime());
 					Transactions tw = new Transactions();
 					tw.setRegId(id.toString());
-					tw.setRole(appConstantsConfig.getValue(AppConstants.ROLE_VENDOR));
+					tw.setRole(appConstantsReader.getValue(AppConstants.ROLE_VENDOR));
 					tw.setCredit("0");
 					tw.setDebit(transtotalamount);
 					double walletamount = Double.parseDouble(amount);
@@ -314,15 +358,15 @@ public class VendorServiceImpl implements VendorService {
 					String contotalamount = Double.toString(totalamount);
 					tw.setTotal(contotalamount);
 
-					String jorole = appConstantsConfig.getValue(AppConstants.ROLE_JOP);
+					String jorole = appConstantsReader.getValue(AppConstants.ROLE_JOP);
 					TransactionCodes transactionCodes = transactionsService.getTransactionCodesByStatusCode(jorole);
 
 					tw.setPurpose(transactionCodes.getPurpose());
 					tw.setDateTime(LocalDateTime.now(ZoneId.of("Asia/Kolkata")));
 					tw.setTransactionCodes(transactionCodes.getCode());
 
-					tw.setUniqueId(
-							ApplicationUtil.utcToAsiaTimeZone(ApplicationUtil.getUTCTime()) + id + contotalamount + "DEBT");
+					tw.setUniqueId(ApplicationUtil.utcToAsiaTimeZone(ApplicationUtil.getUTCTime()) + id + contotalamount
+							+ "DEBT");
 					int transaction_id = transactionsService.saveTransaction(tw);
 					System.out.println("check transaction" + transaction_id);
 
@@ -341,9 +385,9 @@ public class VendorServiceImpl implements VendorService {
 					tw.setDebit("0");
 					tw.setTotal(Double.toString(updateamount + vendorProfit));
 					tw.setPurpose("Vendor Profit Added By Subvendor(" + vendorid + ")");
-					String jorole1 = appConstantsConfig.getValue(AppConstants.ROLE_RMBA);
-					tw.setUniqueId(
-							ApplicationUtil.utcToAsiaTimeZone(ApplicationUtil.getUTCTime()) + id + contotalamount+ "CRDT");
+					String jorole1 = appConstantsReader.getValue(AppConstants.ROLE_RMBA);
+					tw.setUniqueId(ApplicationUtil.utcToAsiaTimeZone(ApplicationUtil.getUTCTime()) + id + contotalamount
+							+ "CRDT");
 					tw.setTransactionCodes("VPA");
 					transactionsService.saveTransaction(tw);
 				}
@@ -390,15 +434,32 @@ public class VendorServiceImpl implements VendorService {
 		return freeze;
 	}
 
+	private void updateJodiGameDto(JodiGame jodiGame, Long id, String vendorrole, String jodiGameId, String datetime,
+			String starttime, String drawtime) {
+		jodiGame.setRegId(id);
+		jodiGame.setRole(vendorrole);
+		jodiGame.setGameId(jodiGameId);
+		jodiGame.setDateTime(datetime);
+		jodiGame.setStartTime(starttime);
+		jodiGame.setDrawTime(drawtime);
+	}
+
 	@Override
-	public VendorRegistration getProfileDataByEmailId(String emailId) {
+	public VendorRegistration getProfileDataByEmailId(String emailId) throws VendorNotFoundException {
 		// TODO Auto-generated method stub
-		return vendorRegistration.findByVendorEmail(emailId);
+
+		VendorRegistration vendor = vendorRegistrationRepository.findByVendorEmail(emailId);
+		if (Objects.isNull(vendor)) {
+			String errorMsg = String.format(appConstantsReader.getValue(ExceptionMessageConstants.VENDOR_NOT_FOUND),
+					"email", emailId);
+			throw new VendorNotFoundException(ExceptionMessageConstants.VENDOR_NOT_FOUND, errorMsg);
+		}
+		return vendor;
 	}
 
 	@Override
 	public VendorRegistration getVendorRegistration(Long id) {
 		// TODO Auto-generated method stub
-		return vendorRegistration.getOne(id);
+		return vendorRegistrationRepository.getOne(id);
 	}
 }
