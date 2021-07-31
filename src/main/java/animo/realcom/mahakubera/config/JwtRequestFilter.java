@@ -2,7 +2,6 @@ package animo.realcom.mahakubera.config;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
-import java.util.function.Function;
 
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
@@ -20,21 +19,19 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import animo.realcom.mahakubera.exception.InvalidAuthenticatonException;
-import animo.realcom.mahakubera.modal.UserDetailsDTO;
+import animo.realcom.mahakubera.modal.CustomUserDetails;
 import animo.realcom.mahakubera.modal.response.ErrorResponse;
-import animo.realcom.mahakubera.service.UserDetailsFacade;
-import animo.realcom.mahakubera.util.AppConstants;
+import animo.realcom.mahakubera.service.UserService;
 import animo.realcom.mahakubera.util.ExceptionMessageConstants;
 import animo.realcom.mahakubera.util.JwtTokenUtil;
-import animo.realcom.mahakubera.util.UserType;
-import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 
 @Component
 public class JwtRequestFilter extends OncePerRequestFilter {
 
+	
 	@Autowired
-	private UserDetailsFacade userDetailsFacade;
+	private UserService userService;
 
 	@Autowired
 	private JwtTokenUtil jwtTokenUtil;
@@ -75,13 +72,7 @@ public class JwtRequestFilter extends OncePerRequestFilter {
 		// Once we get the token validate it.
 		if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
 
-			Function<Claims, String> userRoleClaim = (claim) -> (String) claim.get(AppConstants.USER_TYPE_LABEL);
-			String userRole = jwtTokenUtil.getClaimFromToken(jwtToken, userRoleClaim);
-			UserDetailsDTO.UserDetailsDTOBuilder userDetailsDTOBuilder = UserDetailsDTO.builder();
-			userDetailsDTOBuilder.emailId(username);
-			userDetailsDTOBuilder.userType(UserType.getUserTypeFromValue(userRole));
-			UserDetailsDTO userDetails = userDetailsDTOBuilder.build();
-			userDetails = this.userDetailsFacade.getUserDetails(userDetails);
+			CustomUserDetails userDetails = (CustomUserDetails) userService.loadUserByUsername(username);
 			// if token is valid configure Spring Security to manually set
 			// authentication
 			if (jwtTokenUtil.validateToken(jwtToken, userDetails)) {
@@ -105,12 +96,10 @@ public class JwtRequestFilter extends OncePerRequestFilter {
 		filterChain.doFilter(request, response);
 	}
 
-	private void checkUserAccountActivity(UserDetailsDTO userDetails) {
+	private void checkUserAccountActivity(CustomUserDetails userDetails) {
 		// Check user account is Disabled
 		if (!userDetails.isEnabled()) {
-			if (userDetails.getUserType().equals(UserType.VENDOR)) {
-				throw new InvalidAuthenticatonException(ExceptionMessageConstants.VENDOR_ACOUNT_LOCKED);
-			}
+				throw new InvalidAuthenticatonException(ExceptionMessageConstants.VENDOR_ACOUNT_LOCKED);			
 		}
 	}
 

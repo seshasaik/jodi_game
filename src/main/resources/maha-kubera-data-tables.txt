@@ -8,7 +8,7 @@ roles
 user
 
 	id	int(11) primary_key auto_increment,
-	userName varchar(50) unique	
+	user_name varchar(50) unique	
 	password varchar(250)
 	enabled int default 1
 	lastLogin date_time
@@ -22,8 +22,8 @@ user_roles
 user_details
 
 	id	int(11) primary_key auto_increment,
-	fistName	varchar(50)
-	lastName	varchar(50)
+	fist_name	varchar(50)
+	last_name	varchar(50)
 	date_of_birth date
 	gender	char(3)
 	mobile	varchar(20)

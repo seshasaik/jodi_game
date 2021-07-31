@@ -11,7 +11,8 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
-import animo.realcom.mahakubera.modal.UserDetailsDTO;
+import animo.realcom.mahakubera.entity.User;
+import animo.realcom.mahakubera.modal.CustomUserDetails;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -22,21 +23,20 @@ public class JwtTokenUtil implements Serializable {
 
 	private static final long serialVersionUID = -2550185165626007488L;
 
-	//public final long JWT_TOKEN_VALIDITY;// = 5 * 60 * 60;
+	// public final long JWT_TOKEN_VALIDITY;// = 5 * 60 * 60;
 
 	@Value("${jwt.validity}")
 	private long JWT_TOKEN_VALIDITY;
-	
+
 	@Value("${jwt.secret}")
 	private String secret;
-		
 
-	//retrieve username from jwt token
+	// retrieve username from jwt token
 	public String getUsernameFromToken(String token) {
 		return getClaimFromToken(token, Claims::getSubject);
 	}
 
-	//retrieve expiration date from jwt token
+	// retrieve expiration date from jwt token
 	public Date getExpirationDateFromToken(String token) {
 		return getClaimFromToken(token, Claims::getExpiration);
 	}
@@ -45,29 +45,31 @@ public class JwtTokenUtil implements Serializable {
 		final Claims claims = getAllClaimsFromToken(token);
 		return claimsResolver.apply(claims);
 	}
-    //for retrieveing any information from token we will need the secret key
+
+	// for retrieveing any information from token we will need the secret key
 	private Claims getAllClaimsFromToken(String token) {
 		return Jwts.parser().setSigningKey(secret).parseClaimsJws(token).getBody();
 	}
 
-	//check if the token has expired
+	// check if the token has expired
 	private Boolean isTokenExpired(String token) {
 		final Date expiration = getExpirationDateFromToken(token);
 		return expiration.before(new Date());
 	}
 
-	//generate token for user
-	public String generateToken(UserDetailsDTO userDetails) {
+	// generate token for user
+	public String generateToken(User userDetails) {
 		Map<String, Object> claims = new HashMap<>();
-		claims.put(AppConstants.USER_TYPE_LABEL, userDetails.getUserType().getType());
-		return doGenerateToken(claims, userDetails.getUsername());
+		//claims.put(AppConstants.USER_OBJECT_LABEL, userDetails);
+		return doGenerateToken(claims, userDetails.getUserName());
 	}
 
-	//while creating the token -
-	//1. Define  claims of the token, like Issuer, Expiration, Subject, and the ID
-	//2. Sign the JWT using the HS512 algorithm and secret key.
-	//3. According to JWS Compact Serialization(https://tools.ietf.org/html/draft-ietf-jose-json-web-signature-41#section-3.1)
-	//   compaction of the JWT to a URL-safe string 
+	// while creating the token -
+	// 1. Define claims of the token, like Issuer, Expiration, Subject, and the ID
+	// 2. Sign the JWT using the HS512 algorithm and secret key.
+	// 3. According to JWS Compact
+	// Serialization(https://tools.ietf.org/html/draft-ietf-jose-json-web-signature-41#section-3.1)
+	// compaction of the JWT to a URL-safe string
 	private String doGenerateToken(Map<String, Object> claims, String subject) {
 
 		return Jwts.builder().setClaims(claims).setSubject(subject).setIssuedAt(new Date(System.currentTimeMillis()))
@@ -75,8 +77,8 @@ public class JwtTokenUtil implements Serializable {
 				.signWith(SignatureAlgorithm.HS512, secret).compact();
 	}
 
-	//validate token
-	public Boolean validateToken(String token, UserDetailsDTO userDetails) {
+	// validate token
+	public Boolean validateToken(String token, CustomUserDetails userDetails) {
 		final String username = getUsernameFromToken(token);
 		return (username.equals(userDetails.getUsername()) && !isTokenExpired(token));
 	}

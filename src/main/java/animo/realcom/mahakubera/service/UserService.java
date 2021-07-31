@@ -1,10 +1,13 @@
 package animo.realcom.mahakubera.service;
 
-import animo.realcom.mahakubera.entity.UserRegistration;
+import org.springframework.security.core.userdetails.UserDetailsService;
+
+import animo.realcom.mahakubera.entity.User;
 import animo.realcom.mahakubera.modal.UserDTO;
 
-public interface UserService {
-	public void saveUserRegistration(UserDTO user);
-	public UserRegistration getProfileDataByEmailId(String email);
+public interface UserService extends UserDetailsService {
+	public void saveUserRegistration(UserDTO user);	
+	public UserDTO getProfile();
+	public User getUserByUserName(String userName); 
 	
 }

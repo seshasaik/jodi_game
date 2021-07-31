@@ -29,7 +29,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
-import animo.realcom.mahakubera.modal.UserDetailsDTO;
+import animo.realcom.mahakubera.modal.CustomUserDetails;
 
 public class ApplicationUtil {
 
@@ -60,8 +60,8 @@ public class ApplicationUtil {
 		return principal.getName() != "" && principal.getName() != null ? principal.getName() : null;
 	}
 
-	public static UserDetailsDTO getAuthenticationDetails() {
-		UserDetailsDTO user = (UserDetailsDTO) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+	public static CustomUserDetails getAuthenticationDetails() {
+		CustomUserDetails user = (CustomUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 		return user;
 	}
 

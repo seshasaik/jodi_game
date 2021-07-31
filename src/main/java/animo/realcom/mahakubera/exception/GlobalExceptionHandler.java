@@ -3,7 +3,6 @@ package animo.realcom.mahakubera.exception;
 import java.time.LocalDateTime;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.StringUtils;
@@ -13,6 +12,7 @@ import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
 import animo.realcom.mahakubera.config.AbstractPropertiesReader;
+import animo.realcom.mahakubera.exception.gameJodi.GameJodiPlayStatusException;
 import animo.realcom.mahakubera.modal.response.ErrorResponse;
 import animo.realcom.mahakubera.util.ExceptionMessageConstants;
 
@@ -22,7 +22,8 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 	@Autowired
 	AbstractPropertiesReader errorMessageReader;
 
-	@ExceptionHandler(value = { InvalidAuthenticatonException.class, VendorNotFoundException.class })
+	@ExceptionHandler(value = { InvalidAuthenticatonException.class, 
+			GameJodiPlayStatusException.class })
 	public ResponseEntity<ErrorResponse> handleApplicationGenericNotFoundException(BaseRuntimeException ex,
 			WebRequest request) {
 		return ResponseEntity.status(HttpStatus.NOT_FOUND).body(buildErrorResponse(ex, HttpStatus.NOT_FOUND));
