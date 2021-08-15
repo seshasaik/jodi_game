@@ -6,20 +6,18 @@ public class URIConstants {
 	public static final String LOGIN = "/login";
 	public static final String PROFILE = "/profile";
 	
-	//vendor URL fragments
-	public static final String VENDOR_BASE_PATH = "/vendor";
-	
-	
+		
 	public static final String GAME_JODI_BASE_PATH = "/game-jodi";
 	
 	public static final String GAME_JODI_COMAPANY_LIST = "/companies";
 	public static final String GAME_JODI_NEXT_GAME = "/next-game";
-	public static final String SAVE_GAME_GODI_TRANSACTION = "/save-transaction";
-	public static final String CANCEL_GAME_GODI_TRANSACTION = "/cancel-transaction";
-	public static final String GET_GAME_GODI_TRANSACTION = "/get-transaction";
+	public static final String GAME_GODI_SAVE_TRANSACTION = "/save-transaction";
+	public static final String GAME_GODI_CANCEL_TRANSACTION = "/cancel-transaction/{transactionId}";
+	public static final String GAME_GODI_TRANSACTION_LIST = "/transactions";
+	public static final String JODI_GAME_RECENT_DRAW_RESULT = "/recent-result";
+	public static final String JODI_GAME_TIMING_LIST = "/global-timing-list";
 	
-	public static final String RECENT_JODI_GAME_DRAW_RESULT = "/recentJodiGameDrawResult";
-	
-	
-	
+	public static final String GAME_GODI_TRANSACTION_DETAIL = "/transaction/{transactionId}";
+	public static final String GAME_GODI_CLAIM_TRANSACTION = "/claim-transaction/{transactionId}";
+	public static final String JODI_GAME_JOURNAL_ENTRY = "/journal-entry";
 }

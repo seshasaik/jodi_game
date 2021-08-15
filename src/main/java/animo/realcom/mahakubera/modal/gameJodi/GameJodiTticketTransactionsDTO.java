@@ -1,19 +1,37 @@
 package animo.realcom.mahakubera.modal.gameJodi;
 
-import java.util.HashMap;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+
+import animo.realcom.mahakubera.modal.UserDTO;
+import animo.realcom.mahakubera.util.GameJodiStatus;
 import lombok.Builder;
 import lombok.Data;
 
 @Data
 @Builder
+@JsonInclude(value = Include.NON_NULL)
 public class GameJodiTticketTransactionsDTO {
 
-	private Long id;
-	private Long ticketId;
-	private HashMap<String, Short> lotteryNoMap;
-	private short totalQuantity;
-	private Double ticketRate;
+	private Long Id;
+	private String transactionCode;
+	private Short totalQuantity;
 	private Double totalAmount;
+	private String status;
+	private LocalDateTime created;
+	private LocalDateTime canceled;
+	private LocalDateTime claimed;
+	private String winningNumbers;
+	private String ticketNo;
+	private LocalTime startTime;
+	private LocalTime endTime;
+	private GameJodiStatus gameStatus;
+	
+	private UserDTO user;
 
+	private List<GameJodiTicketTransactionDetailDTO> detail;
 }

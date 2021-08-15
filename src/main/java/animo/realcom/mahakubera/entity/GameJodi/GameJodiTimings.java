@@ -23,6 +23,7 @@ public class GameJodiTimings {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Short id;
+	private String name;
 	private LocalTime startTime;
 	private LocalTime endTime;
 	private byte duration;
@@ -30,5 +31,6 @@ public class GameJodiTimings {
 	private String description;
 	private LocalDateTime created;
 	private LocalDateTime updated;
+	private boolean status;
 
 }

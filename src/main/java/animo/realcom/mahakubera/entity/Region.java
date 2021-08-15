@@ -3,6 +3,7 @@ package animo.realcom.mahakubera.entity;
 import java.util.List;
 
 import javax.persistence.CascadeType;
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
@@ -23,11 +24,13 @@ import lombok.Data;
 public class Region {
 
 	@Id
-	@GeneratedValue(strategy = GenerationType.AUTO)
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Integer id;
 
 	private String name;
-	private String short_code;
+
+	@Column(name = "short_code")
+	private String shortCode;
 
 	private byte status;
 

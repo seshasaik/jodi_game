@@ -54,7 +54,7 @@ public class UserServiceImpl implements UserService {
 		CustomUserDetails.CustomUserDetailsBuilder builder = CustomUserDetails.builder();
 		builder.id(user.getId()).userName(user.getUserName()).password(user.getPassword());
 		builder.enabled(user.getEnabled() == AppConstants.ENABLED_NUMBER).regionId(user.getRegion().getId());
-		builder.authorities(user.getUserRoles().stream().map(r -> r.getName()).map(SimpleGrantedAuthority::new)
+		builder.authorities(user.getUserRoles().stream().map(r -> r.getName().getRoleName()).map(SimpleGrantedAuthority::new)
 				.collect(Collectors.toList()));
 
 		return builder.build();

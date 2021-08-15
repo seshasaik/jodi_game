@@ -33,7 +33,7 @@ public class User {
 	 */
 
 	@Id
-	@GeneratedValue(strategy = GenerationType.AUTO)
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Integer id;
 	private String userName;
 	private String password;
@@ -49,6 +49,13 @@ public class User {
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "region_id")
 	private Region region;
+
+	@OneToMany(fetch = FetchType.LAZY, mappedBy = "parent")
+	List<User> child;
+	
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "created_by")
+	User parent;
 
 	public User() {
 		// TODO Auto-generated constructor stub

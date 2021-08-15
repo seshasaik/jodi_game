@@ -11,5 +11,5 @@ import animo.realcom.mahakubera.entity.GameJodi.GameJodiTicketCompany;
 @Repository
 public interface GameJodiTicketCompanyRepository extends JpaRepository<GameJodiTicketCompany, Long> {
 
-	List<GameJodiTicketCompany> findAllByGameJodiTicket(GameJodiTicket gameJodiTicket);
+	List<GameJodiTicketCompany> findAllByTicketCompany_ticket(GameJodiTicket gameJodiTicket);
 }

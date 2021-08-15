@@ -5,10 +5,27 @@
 			<PatternLayout
 				pattern="%d{HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n" />
 		</Console>
+		<RollingFile name="RollingFile"
+			fileName="/logs/mahakubera-log.log"
+			filePattern="/logs/$${date:yyyy-MM}/mahakubera-log-%d{-dd-MMMM-yyyy}-%i.log">
+			<PatternLayout>
+				<pattern>%d %p %C{1.} [%t] %m%n</pattern>
+			</PatternLayout>
+			<Policies>
+				<!-- rollover on startup, daily and when the file reaches 10 MegaBytes -->
+				<OnStartupTriggeringPolicy />
+				<SizeBasedTriggeringPolicy size="10 MB" />
+				<TimeBasedTriggeringPolicy />
+			</Policies>
+		</RollingFile>
 	</Appenders>
 	<Loggers>
-		<Root level="error">
-			<AppenderRef ref="Console" />
+		<Root level="error">			
+			<AppenderRef ref="RollingFile" />
 		</Root>
+		<Root level="info">
+            <AppenderRef ref="Console" />
+            <AppenderRef ref="RollingFile" />
+        </Root>
 	</Loggers>
 </Configuration>

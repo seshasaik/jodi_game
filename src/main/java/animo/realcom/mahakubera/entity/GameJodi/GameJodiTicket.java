@@ -1,8 +1,9 @@
 package animo.realcom.mahakubera.entity.GameJodi;
 
 import java.time.Instant;
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.time.LocalTime;
+import java.time.ZoneOffset;
 import java.util.List;
 
 import javax.persistence.Column;
@@ -15,8 +16,6 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
-import javax.persistence.Table;
-import javax.persistence.UniqueConstraint;
 
 import animo.realcom.mahakubera.entity.GameJodi.attributeConverter.GameJodiStatusConverter;
 import animo.realcom.mahakubera.util.GameJodiStatus;
@@ -37,6 +36,7 @@ public class GameJodiTicket {
 	private String ticketNo;
 	private LocalTime startTime;
 	private LocalTime endTime;
+	private LocalDate gameDate = LocalDate.now(ZoneOffset.UTC);
 	private short ticketIndex;
 	@Column(updatable = false)
 	private Instant created;
@@ -44,9 +44,12 @@ public class GameJodiTicket {
 	private Instant updated;
 	@Convert(converter = GameJodiStatusConverter.class)
 	private GameJodiStatus gameStatus = GameJodiStatus.YET_TO_START;
-	
-	@ManyToOne
+
+	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "game_time")
 	private GameJodiTimings gameJodiTime;
+
+	@OneToMany(fetch = FetchType.LAZY, mappedBy = "ticketCompany.ticket", orphanRemoval = true)
+	private List<GameJodiTicketCompany> companies;
 
 }

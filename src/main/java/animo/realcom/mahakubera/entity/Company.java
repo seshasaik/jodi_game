@@ -26,7 +26,7 @@ public class Company {
 	}
 
 	@Id
-	@GeneratedValue(strategy = GenerationType.AUTO)
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Integer id;
 
 	private String name;
@@ -36,8 +36,7 @@ public class Company {
 	private Short maxQuantity;
 	private BigDecimal winningPrizeAmount;
 
-	@OneToMany(fetch = FetchType.LAZY)
-	@JoinColumn(name = "company")
+	@OneToMany(mappedBy = "ticketCompany.company", fetch = FetchType.LAZY)
 	private List<GameJodiTicketCompany> gameJodiTicketes;
 
 	@OneToMany(mappedBy = "regionCompanyId.company", fetch = FetchType.LAZY)
