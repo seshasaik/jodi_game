@@ -32,7 +32,9 @@ public interface GameJodiService {
 
 	public PageDto getGameJodiTransactions(LocalDate transactionDate, PageRequest page);
 	
-	public GameJodiTticketTransactionsDTO getGameJodiTransactionsDetail(Long transactionId);
+	public List<GameJodiTticketTransactionsDTO> getGameJodiCancelTransactions(Long gameId);
+	
+	public GameJodiTticketTransactionsDTO getGameJodiTransactionsDetail(Long gameId);
 
 	public GameJodiTicketTransactionRequestDTO saveJodiTicket(GameJodiTicketTransactionRequestDTO jodiTickets);
 
@@ -43,5 +45,7 @@ public interface GameJodiService {
 	public List<GameJodiGlobalTimingDTO> getGameGlobalJodiTimeings();
 	
 	public PageDto getGameJodiJounalEntry(LocalDate entryDate, PageRequest page);
+	
+	public PageDto getGameJodiResult(LocalDate gameDate, PageRequest page);
 
 }

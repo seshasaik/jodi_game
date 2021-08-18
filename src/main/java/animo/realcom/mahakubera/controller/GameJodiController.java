@@ -81,6 +81,13 @@ public class GameJodiController {
 		PageRequest page = PageRequest.of(pageIndex, pageSize, Sort.by(Direction.DESC, "created"));
 		return ResponseEntity.ok(gameJodiService.getGameJodiTransactions(transactionDate, page));
 	}
+	
+	@GetMapping(path = URIConstants.GAME_GODI_CANCELED_TRANSACTION_LIST)
+	public ResponseEntity<List<GameJodiTticketTransactionsDTO>> getGameJodiCancelTransaction(
+			@RequestParam(name = "gameId") Long gameId) {
+		
+		return ResponseEntity.ok(gameJodiService.getGameJodiCancelTransactions(gameId));
+	}
 
 	@GetMapping(path = URIConstants.GAME_GODI_TRANSACTION_DETAIL)
 	public ResponseEntity<GameJodiTticketTransactionsDTO> getGameJodiTransactionDetail(
@@ -88,7 +95,7 @@ public class GameJodiController {
 
 		return ResponseEntity.ok(gameJodiService.getGameJodiTransactionsDetail(transactionId));
 	}
-
+	
 	@GetMapping(path = URIConstants.JODI_GAME_JOURNAL_ENTRY)
 	public ResponseEntity<PageDto> getGameJodiJournalEntry(
 			@RequestParam(name = "journalDate") @DateTimeFormat(iso = ISO.DATE) LocalDate journalDate,
@@ -97,6 +104,16 @@ public class GameJodiController {
 		PageRequest page = PageRequest.of(pageIndex, pageSize, Sort.by(Direction.DESC, "created"));
 
 		return ResponseEntity.ok(gameJodiService.getGameJodiJounalEntry(journalDate, page));
+	}
+
+	@GetMapping(path = URIConstants.JODI_GAME_RESULTS)
+	public ResponseEntity<PageDto> getGameJodiResults(
+			@RequestParam(name = "gameDate") @DateTimeFormat(iso = ISO.DATE) LocalDate gameDate,
+			@RequestParam(name = "page-index") int pageIndex, @RequestParam(name = "page-size") int pageSize) {
+
+		PageRequest page = PageRequest.of(pageIndex, pageSize, Sort.by(Direction.DESC, "ticketIndex"));
+
+		return ResponseEntity.ok(gameJodiService.getGameJodiResult(gameDate, page));
 	}
 
 	@GetMapping(path = { "load" })

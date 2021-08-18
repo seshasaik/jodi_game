@@ -15,6 +15,8 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.persistence.NamedQueries;
+import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
 
 import animo.realcom.mahakubera.entity.GameJodi.attributeConverter.GameJodiStatusConverter;
@@ -23,6 +25,9 @@ import lombok.Data;
 
 @Data
 @Entity()
+@NamedQueries(value = {
+		@NamedQuery(name = "gameJodiTicketCompanyDetail", query = "select tkt from GameJodiTicket tkt join fetch tkt.companies company join fetch company.ticketCompany.company as company1 where tkt.gameDate = :gameDate and tkt.gameStatus = :gameStatus")
+})
 public class GameJodiTicket {
 
 	public GameJodiTicket() {

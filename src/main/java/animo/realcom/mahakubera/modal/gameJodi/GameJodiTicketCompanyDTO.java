@@ -14,6 +14,9 @@ public class GameJodiTicketCompanyDTO {
 	private Long id;
 	private String winningNumbers;
 	private Integer companyId;
+	private String orignalCompanyName;
+	private String orignalCompanyCode;
 	private String companyName;
-	
+	private String companyCode;
+
 }

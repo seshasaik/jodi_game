@@ -20,6 +20,7 @@ import javax.persistence.ParameterMode;
 import javax.persistence.StoredProcedureParameter;
 
 import animo.realcom.mahakubera.entity.User;
+import animo.realcom.mahakubera.entity.GameJodi.attributeConverter.GameJodiTransactionClaimStatusConverter;
 import animo.realcom.mahakubera.entity.GameJodi.attributeConverter.GameJodiTransactionStatusConverter;
 import animo.realcom.mahakubera.util.GameJodiTransactionStatus;
 import lombok.Data;
@@ -55,11 +56,18 @@ public class GameJodiTicketTransactions {
 	@Column(insertable = false)
 	private Instant canceled;
 	@Convert(converter = GameJodiTransactionStatusConverter.class)
-	private GameJodiTransactionStatus status = GameJodiTransactionStatus.SUCCESS;
+	private GameJodiTransactionStatus status = GameJodiTransactionStatus.TRANSACTION_SUCCESS;
 
-	private String winingStatus;
+	@Convert(converter = GameJodiTransactionStatusConverter.class)
+	private GameJodiTransactionStatus winingStatus = GameJodiTransactionStatus.WINING_STATUS_HOLD;
+
 	private Double claimAmount;
-	private String claim_status;
+		
+	@Column(insertable = false)
+	private Instant claimed;
+
+	@Convert(converter = GameJodiTransactionClaimStatusConverter.class)
+	private GameJodiTransactionStatus claimStatus;
 
 	@ManyToOne
 	@JoinColumn(name = "vendor_id ")

@@ -9,6 +9,7 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
 import animo.realcom.mahakubera.modal.UserDTO;
 import animo.realcom.mahakubera.util.GameJodiStatus;
+import animo.realcom.mahakubera.util.GameJodiTransactionStatus;
 import lombok.Builder;
 import lombok.Data;
 
@@ -30,7 +31,8 @@ public class GameJodiTticketTransactionsDTO {
 	private LocalTime startTime;
 	private LocalTime endTime;
 	private GameJodiStatus gameStatus;
-	
+	private GameJodiTransactionStatus winStatus;
+	private GameJodiTransactionStatus claimStatus;
 	private UserDTO user;
 
 	private List<GameJodiTicketTransactionDetailDTO> detail;
