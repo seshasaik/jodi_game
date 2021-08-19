@@ -26,17 +26,10 @@ public class GameJodiWallet {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
-	@ManyToOne
-	@JoinColumn
-	private GameJodiTicket ticketId;
-
-	private String transaction_type;
-
 	@ManyToOne(cascade = CascadeType.REMOVE)
-	@JoinColumn(name = "vendor_id")
+	@JoinColumn(name = "user_id")
 	private User user;
 
 	private BigDecimal amount;
-	private LocalDateTime created;
 
 }

@@ -10,11 +10,10 @@ import lombok.Data;
 public class GameJodiJournalEntryDTO {
 
 	private Double credit;
-	private LocalDateTime createdOn;
+	private LocalDateTime created;
 	private Double debit;
 	private String description;
 	private String journalEntryCode;
-	private String transactionCode;
-	private String ticketNo;
+	private String ticketCode;
 
 }

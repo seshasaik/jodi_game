@@ -38,8 +38,8 @@ public class GameJodiJournalEntry {
 	private User admin;
 	
 	@ManyToOne
-	@JoinColumn(name = "transaction_id")
-	private GameJodiTicketTransactions transaction;
+	@JoinColumn(name = "ticket_id")
+	private GameJodiTicket gameJodiTicket;
 	
 	private Double credit = new Double(0);
 	private Double debit = new Double(0);

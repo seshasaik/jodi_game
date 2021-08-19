@@ -16,7 +16,7 @@ import animo.realcom.mahakubera.entity.GameJodi.GameJodiJournalEntry;
 @Repository
 public interface GameJodiJournalEntryRepository extends JpaRepository<GameJodiJournalEntry, Long> {
 
-	@Query(value = "select journal from GameJodiJournalEntry as journal join fetch journal.transaction as jodiTrns join fetch journal.journalEntry as entry join fetch jodiTrns.jodiTicket as jodiTicket where journal.created between :jounalEntryStart and :jounalEntryEnd and journal.vendor = :vendor", countQuery = "select count(1) from GameJodiJournalEntry as journal where journal.created between :jounalEntryStart and :jounalEntryEnd  and journal.vendor = :vendor")
+	@Query(value = "select journal from GameJodiJournalEntry as journal join fetch journal.gameJodiTicket as jodiTicket join fetch journal.journalEntry as entry where journal.created between :jounalEntryStart and :jounalEntryEnd and journal.vendor = :vendor", countQuery = "select count(1) from GameJodiJournalEntry as journal where journal.created between :jounalEntryStart and :jounalEntryEnd  and journal.vendor = :vendor")
 	Page<GameJodiJournalEntry> getJodiJournalEntry(@Param("jounalEntryStart") Instant jounalEntryStart,
 			@Param("jounalEntryEnd") Instant jounalEntryEnd, @Param("vendor") User vendor, Pageable page);
 }

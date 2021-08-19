@@ -23,6 +23,7 @@ import animo.realcom.mahakubera.modal.PageDto;
 import animo.realcom.mahakubera.modal.gameJodi.GameJodiGlobalTimingDTO;
 import animo.realcom.mahakubera.modal.gameJodi.GameJodiTicketDTO;
 import animo.realcom.mahakubera.modal.gameJodi.GameJodiTicketTransactionRequestDTO;
+import animo.realcom.mahakubera.modal.gameJodi.GameJodiTransactionSummary;
 import animo.realcom.mahakubera.modal.gameJodi.GameJodiTticketTransactionsDTO;
 import animo.realcom.mahakubera.modal.gameJodi.RegionCompanyDTO;
 import animo.realcom.mahakubera.modal.response.SuccessResponse;
@@ -69,8 +70,16 @@ public class GameJodiController {
 			@PathVariable(name = "transactionId", required = true) Long transactionId) {
 		gameJodiService.cancelJodiTicket(transactionId);
 		SuccessResponse successResponse = new SuccessResponse();
-		successResponse.setMessage(
-				String.format("Game Jodi Ticket Transaction with given id %d cancelled succefully", transactionId));
+		successResponse.setMessage("Game Jodi Ticket Transaction with cancelled succefully");
+		return ResponseEntity.ok(successResponse);
+	}
+
+	@PutMapping(path = URIConstants.GAME_GODI_CLAIM_TRANSACTION)
+	public ResponseEntity<SuccessResponse> claimGameJodiTransaction(
+			@PathVariable(name = "transactionId", required = true) Long transactionId) {
+		gameJodiService.cancelJodiTicket(transactionId);
+		SuccessResponse successResponse = new SuccessResponse();
+		successResponse.setMessage("Game Jodi Ticket Transaction claimed succefully");
 		return ResponseEntity.ok(successResponse);
 	}
 
@@ -81,11 +90,11 @@ public class GameJodiController {
 		PageRequest page = PageRequest.of(pageIndex, pageSize, Sort.by(Direction.DESC, "created"));
 		return ResponseEntity.ok(gameJodiService.getGameJodiTransactions(transactionDate, page));
 	}
-	
+
 	@GetMapping(path = URIConstants.GAME_GODI_CANCELED_TRANSACTION_LIST)
 	public ResponseEntity<List<GameJodiTticketTransactionsDTO>> getGameJodiCancelTransaction(
 			@RequestParam(name = "gameId") Long gameId) {
-		
+
 		return ResponseEntity.ok(gameJodiService.getGameJodiCancelTransactions(gameId));
 	}
 
@@ -95,7 +104,7 @@ public class GameJodiController {
 
 		return ResponseEntity.ok(gameJodiService.getGameJodiTransactionsDetail(transactionId));
 	}
-	
+
 	@GetMapping(path = URIConstants.JODI_GAME_JOURNAL_ENTRY)
 	public ResponseEntity<PageDto> getGameJodiJournalEntry(
 			@RequestParam(name = "journalDate") @DateTimeFormat(iso = ISO.DATE) LocalDate journalDate,
@@ -104,6 +113,12 @@ public class GameJodiController {
 		PageRequest page = PageRequest.of(pageIndex, pageSize, Sort.by(Direction.DESC, "created"));
 
 		return ResponseEntity.ok(gameJodiService.getGameJodiJounalEntry(journalDate, page));
+	}
+
+	@GetMapping(path = URIConstants.JODI_GAME_JOURNAL_ENTRY_SUMMARY)
+	public ResponseEntity<GameJodiTransactionSummary> getGameJodiJournalEntrySummary(
+			@RequestParam(name = "journalDate") @DateTimeFormat(iso = ISO.DATE) LocalDate journalDate) {
+		return ResponseEntity.ok(gameJodiService.getGameJodiJounalEntrySummary(journalDate));
 	}
 
 	@GetMapping(path = URIConstants.JODI_GAME_RESULTS)

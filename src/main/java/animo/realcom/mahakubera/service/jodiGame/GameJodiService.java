@@ -11,6 +11,7 @@ import animo.realcom.mahakubera.modal.PageDto;
 import animo.realcom.mahakubera.modal.gameJodi.GameJodiGlobalTimingDTO;
 import animo.realcom.mahakubera.modal.gameJodi.GameJodiTicketDTO;
 import animo.realcom.mahakubera.modal.gameJodi.GameJodiTicketTransactionRequestDTO;
+import animo.realcom.mahakubera.modal.gameJodi.GameJodiTransactionSummary;
 import animo.realcom.mahakubera.modal.gameJodi.GameJodiTticketTransactionsDTO;
 import animo.realcom.mahakubera.modal.gameJodi.RegionCompanyDTO;
 
@@ -36,15 +37,19 @@ public interface GameJodiService {
 	
 	public GameJodiTticketTransactionsDTO getGameJodiTransactionsDetail(Long gameId);
 
-	public GameJodiTicketTransactionRequestDTO saveJodiTicket(GameJodiTicketTransactionRequestDTO jodiTickets);
+	public GameJodiTticketTransactionsDTO saveJodiTicket(GameJodiTicketTransactionRequestDTO jodiTickets);
 
 	public void cancelJodiTicket(Long transactionId);
+	
+	public void claimJodiTicket(Long transactionId);
 
 	public boolean isTodayGameJodiPrepared();
 	
 	public List<GameJodiGlobalTimingDTO> getGameGlobalJodiTimeings();
 	
 	public PageDto getGameJodiJounalEntry(LocalDate entryDate, PageRequest page);
+	
+	public GameJodiTransactionSummary getGameJodiJounalEntrySummary(LocalDate transactionDate);
 	
 	public PageDto getGameJodiResult(LocalDate gameDate, PageRequest page);
 

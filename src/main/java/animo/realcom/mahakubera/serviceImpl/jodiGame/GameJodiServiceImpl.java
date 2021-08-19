@@ -8,7 +8,6 @@ import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
-import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -18,7 +17,6 @@ import java.util.Optional;
 import java.util.Random;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -28,7 +26,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -43,8 +40,6 @@ import animo.realcom.mahakubera.entity.Region;
 import animo.realcom.mahakubera.entity.Roles;
 import animo.realcom.mahakubera.entity.User;
 import animo.realcom.mahakubera.entity.GameJodi.GameJodiJournalEntry;
-import animo.realcom.mahakubera.entity.GameJodi.GameJodiPlayStatus;
-import animo.realcom.mahakubera.entity.GameJodi.GameJodiPlayStatusId;
 import animo.realcom.mahakubera.entity.GameJodi.GameJodiTicket;
 import animo.realcom.mahakubera.entity.GameJodi.GameJodiTicketCompany;
 import animo.realcom.mahakubera.entity.GameJodi.GameJodiTicketCompanyId;
@@ -53,8 +48,8 @@ import animo.realcom.mahakubera.entity.GameJodi.GameJodiTicketTransactions;
 import animo.realcom.mahakubera.entity.GameJodi.GameJodiTicketTransactionsDetailId;
 import animo.realcom.mahakubera.entity.GameJodi.GameJodiTimings;
 import animo.realcom.mahakubera.entity.GameJodi.RegionCompany;
-import animo.realcom.mahakubera.entity.GameJodi.RegionCompanyId;
 import animo.realcom.mahakubera.exception.gameJodi.GameJodiTicketNotFoundException;
+import animo.realcom.mahakubera.exception.gameJodi.GameJodiTicketTransactionNotFoundException;
 import animo.realcom.mahakubera.exception.gameJodi.InvalidGameJodiTicketTransaction;
 import animo.realcom.mahakubera.modal.CustomUserDetails;
 import animo.realcom.mahakubera.modal.PageDto;
@@ -62,9 +57,9 @@ import animo.realcom.mahakubera.modal.PageDto.PageDtoBuilder;
 import animo.realcom.mahakubera.modal.UserDTO;
 import animo.realcom.mahakubera.modal.UserDTO.UserDTOBuilder;
 import animo.realcom.mahakubera.modal.gameJodi.GameJodiGlobalTimingDTO;
+import animo.realcom.mahakubera.modal.gameJodi.GameJodiGlobalTimingDTO.GameJodiGlobalTimingDTOBuilder;
 import animo.realcom.mahakubera.modal.gameJodi.GameJodiJournalEntryDTO;
 import animo.realcom.mahakubera.modal.gameJodi.GameJodiJournalEntryDTO.GameJodiJournalEntryDTOBuilder;
-import animo.realcom.mahakubera.modal.gameJodi.GameJodiGlobalTimingDTO.GameJodiGlobalTimingDTOBuilder;
 import animo.realcom.mahakubera.modal.gameJodi.GameJodiTicketCompanyDTO;
 import animo.realcom.mahakubera.modal.gameJodi.GameJodiTicketCompanyDTO.GameJodiTicketCompanyDTOBuilder;
 import animo.realcom.mahakubera.modal.gameJodi.GameJodiTicketDTO;
@@ -72,6 +67,7 @@ import animo.realcom.mahakubera.modal.gameJodi.GameJodiTicketDTO.GameJodiTicketD
 import animo.realcom.mahakubera.modal.gameJodi.GameJodiTicketTransactionDetailDTO;
 import animo.realcom.mahakubera.modal.gameJodi.GameJodiTicketTransactionDetailDTO.GameJodiTicketTransactionDetailDTOBuilder;
 import animo.realcom.mahakubera.modal.gameJodi.GameJodiTicketTransactionRequestDTO;
+import animo.realcom.mahakubera.modal.gameJodi.GameJodiTransactionSummary;
 import animo.realcom.mahakubera.modal.gameJodi.GameJodiTticketTransactionsDTO;
 import animo.realcom.mahakubera.modal.gameJodi.GameJodiTticketTransactionsDTO.GameJodiTticketTransactionsDTOBuilder;
 import animo.realcom.mahakubera.modal.gameJodi.RegionCompanyDTO;
@@ -79,7 +75,6 @@ import animo.realcom.mahakubera.modal.gameJodi.RegionCompanyDTO.RegionCompanyDTO
 import animo.realcom.mahakubera.repository.CompanyRepository;
 import animo.realcom.mahakubera.repository.JournalEntryStatusRepository;
 import animo.realcom.mahakubera.repository.gameJodi.GameJodiJournalEntryRepository;
-import animo.realcom.mahakubera.repository.gameJodi.GameJodiPlayStatusRepository;
 import animo.realcom.mahakubera.repository.gameJodi.GameJodiTicketCompanyRepository;
 import animo.realcom.mahakubera.repository.gameJodi.GameJodiTicketRepository;
 import animo.realcom.mahakubera.repository.gameJodi.GameJodiTimingsRepository;
@@ -123,9 +118,6 @@ public class GameJodiServiceImpl implements GameJodiService {
 
 	@Autowired
 	CompanyRepository companyRepository;
-
-	@Autowired
-	GameJodiPlayStatusRepository gameJodiPlayStatusRepository;
 
 	@Autowired
 	GameJodiJournalEntryRepository gameJodiJournalEntryRepository;
@@ -220,16 +212,6 @@ public class GameJodiServiceImpl implements GameJodiService {
 		AtomicInteger atomicInteger = new AtomicInteger();
 		atomicInteger.set(1);
 
-		List<GameJodiPlayStatus> gameJodiPlayStatusList = gameJodiTimings.stream().map(jameJodiTiming -> {
-			GameJodiPlayStatus gameJodiPlayStatus = new GameJodiPlayStatus();
-			GameJodiPlayStatusId gameJodiPlayStatusId = new GameJodiPlayStatusId(LocalDate.now(),
-					(byte) atomicInteger.getAndIncrement());
-			gameJodiPlayStatus.setGameJodiPlayStatusId(gameJodiPlayStatusId);
-			gameJodiPlayStatus.setPlaySessionTime(jameJodiTiming);
-			return gameJodiPlayStatus;
-		}).collect(Collectors.toList());
-
-		gameJodiPlayStatusRepository.saveAll(gameJodiPlayStatusList);
 		return gameJodiTicketList;
 	}
 
@@ -389,7 +371,7 @@ public class GameJodiServiceImpl implements GameJodiService {
 	}
 
 	@Override
-	public GameJodiTicketTransactionRequestDTO saveJodiTicket(GameJodiTicketTransactionRequestDTO jodiTicket) {
+	public GameJodiTticketTransactionsDTO saveJodiTicket(GameJodiTicketTransactionRequestDTO jodiTicket) {
 
 		CustomUserDetails user = (CustomUserDetails) SecurityContextHolder.getContext().getAuthentication()
 				.getPrincipal();
@@ -453,46 +435,48 @@ public class GameJodiServiceImpl implements GameJodiService {
 		createGameJodiJournalEntry(savedJameJodiTicketTransaction, vendorRole, currentUser,
 				JournalEntryStatusCode.JODI_PURCHASE_TICKET);
 
-		jodiTicket.setId(savedJameJodiTicketTransaction.getId());
-		jodiTicket.setTransactionCode(savedJameJodiTicketTransaction.getTransactionId());
-		jodiTicket.setDateTime(LocalDateTime.ofInstant(savedJameJodiTicketTransaction.getCreated(),
-				ZoneId.of(AppConstants.TIME_ZONE_ASIA_KOLKATA)));
-		jodiTicket.setGameId(savedJameJodiTicketTransaction.getJodiTicket().getTicketNo());
-		UserDTOBuilder userBuilder = UserDTO.builder();
-		userBuilder.id(savedJameJodiTicketTransaction.getVendor().getId())
-				.userName(savedJameJodiTicketTransaction.getVendor().getUserName()).contactNumber("9155887457");
-		jodiTicket.setUser(userBuilder.build());
+		return getGameJodiTransactionsDetail(savedJameJodiTicketTransaction);
 
-		Map<Integer, List<GameJodiTicketTransactionDetailDTO>> transDetailMap = jodiTicket.getDetail().stream()
-				.collect(Collectors.groupingBy(GameJodiTicketTransactionDetailDTO::getCompanyId));
-
-		List<Map.Entry<Integer, Map<Byte, Short>>> entySetList = transDetailMap.entrySet().stream().map(mapset -> {
-			Map<Byte, Short> map = mapset.getValue().stream().collect(Collectors.toMap(
-					GameJodiTicketTransactionDetailDTO::getLotteryNo, GameJodiTicketTransactionDetailDTO::getQuantity));
-			Map.Entry<Integer, Map<Byte, Short>> entySet = new AbstractMap.SimpleEntry<>(mapset.getKey(), map);
-			return entySet;
-
-		}).collect(Collectors.toList());
-
-		jodiTicket.setDetail(entySetList.stream().map(t -> {
-			GameJodiTicketTransactionDetailDTOBuilder transDetail = GameJodiTicketTransactionDetailDTO.builder();
-			Company company = new Company();
-			company.setId(t.getKey());
-			Region region = savedJameJodiTicketTransaction.getVendor().getRegion();
-			RegionCompanyId regionCompanyId = new RegionCompanyId();
-			regionCompanyId.setCompany(company);
-			regionCompanyId.setRegion(region);
-
-			RegionCompany regionCompany = regionCompanyRepository.findById(regionCompanyId).get();
-			transDetail.companyId(company.getId()).companyName(regionCompany.getName())
-					.companyCode(regionCompany.getCode());
-
-			transDetail.detail(t.getValue());
-			return transDetail.build();
-
-		}).collect(Collectors.toList()));
-
-		return jodiTicket;
+//		jodiTicket.setId(savedJameJodiTicketTransaction.getId());
+//		jodiTicket.setTransactionCode(savedJameJodiTicketTransaction.getTransactionId());
+//		jodiTicket.setDateTime(LocalDateTime.ofInstant(savedJameJodiTicketTransaction.getCreated(),
+//				ZoneId.of(AppConstants.TIME_ZONE_ASIA_KOLKATA)));
+//		jodiTicket.setGameId(savedJameJodiTicketTransaction.getJodiTicket().getTicketNo());
+//		UserDTOBuilder userBuilder = UserDTO.builder();
+//		userBuilder.id(savedJameJodiTicketTransaction.getVendor().getId())
+//				.userName(savedJameJodiTicketTransaction.getVendor().getUserName()).contactNumber("9155887457");
+//		jodiTicket.setUser(userBuilder.build());
+//
+//		Map<Integer, List<GameJodiTicketTransactionDetailDTO>> transDetailMap = jodiTicket.getDetail().stream()
+//				.collect(Collectors.groupingBy(GameJodiTicketTransactionDetailDTO::getCompanyId));
+//
+//		List<Map.Entry<Integer, Map<Byte, Short>>> entySetList = transDetailMap.entrySet().stream().map(mapset -> {
+//			Map<Byte, Short> map = mapset.getValue().stream().collect(Collectors.toMap(
+//					GameJodiTicketTransactionDetailDTO::getLotteryNo, GameJodiTicketTransactionDetailDTO::getQuantity));
+//			Map.Entry<Integer, Map<Byte, Short>> entySet = new AbstractMap.SimpleEntry<>(mapset.getKey(), map);
+//			return entySet;
+//
+//		}).collect(Collectors.toList());
+//
+//		jodiTicket.setDetail(entySetList.stream().map(t -> {
+//			GameJodiTicketTransactionDetailDTOBuilder transDetail = GameJodiTicketTransactionDetailDTO.builder();
+//			Company company = new Company();
+//			company.setId(t.getKey());
+//			Region region = savedJameJodiTicketTransaction.getVendor().getRegion();
+//			RegionCompanyId regionCompanyId = new RegionCompanyId();
+//			regionCompanyId.setCompany(company);
+//			regionCompanyId.setRegion(region);
+//
+//			RegionCompany regionCompany = regionCompanyRepository.findById(regionCompanyId).get();
+//			transDetail.companyId(company.getId()).companyName(regionCompany.getName())
+//					.companyCode(regionCompany.getCode());
+//
+//			transDetail.detail(t.getValue());
+//			return transDetail.build();
+//
+//		}).collect(Collectors.toList()));
+//
+//		return jodiTicket;
 	}
 
 	private void createGameJodiJournalEntry(GameJodiTicketTransactions savedJameJodiTicketTransaction, Roles vendorRole,
@@ -503,7 +487,7 @@ public class GameJodiServiceImpl implements GameJodiService {
 
 		GameJodiJournalEntry gameJodiJournalEntry = new GameJodiJournalEntry();
 
-		gameJodiJournalEntry.setTransaction(savedJameJodiTicketTransaction);
+		gameJodiJournalEntry.setGameJodiTicket(savedJameJodiTicketTransaction.getJodiTicket());
 
 		gameJodiJournalEntry.setJournalEntry(journalEntryStatus);
 
@@ -550,11 +534,77 @@ public class GameJodiServiceImpl implements GameJodiService {
 				.orElseThrow(() -> new GameJodiTicketNotFoundException(
 						ExceptionMessageConstants.GAME_JODI_TICKET_TRANSACTION_NOT_FOUND,
 						String.format("Game jodi ticket Transaction %d not found", transactionId)));
+		if (gameJodiTicketTransactions.getJodiTicket().getGameStatus().equals(GameJodiStatus.COMPLETED)) {
+			throw new InvalidGameJodiTicketTransaction(
+					ExceptionMessageConstants.GAME_JODI_TICKET_TRANSACTION_INVALID_CANCEL_NOT_ALLOWED_ON_GAME_COMPLETED);
+		}
+
+		if (gameJodiTicketTransactions.getJodiTicket().getGameStatus().equals(GameJodiStatus.CANCELED)) {
+			throw new InvalidGameJodiTicketTransaction(
+					ExceptionMessageConstants.GAME_JODI_TICKET_TRANSACTION_INVALID_CANCEL_NOT_ALLOWED_ON_GAME_CANCELED);
+		}
+
+		if (gameJodiTicketTransactions.getStatus().equals(GameJodiTransactionStatus.TRANSACTION_CANCEL)) {
+			throw new InvalidGameJodiTicketTransaction(
+					ExceptionMessageConstants.GAME_JODI_TICKET_TRANSACTION_INVALID_CANCEL_NOT_ALLOWED);
+		}
+
 		gameJodiTicketTransactions.setStatus(GameJodiTransactionStatus.TRANSACTION_CANCEL);
 		gameJodiTicketTransactions.setCanceled(Instant.now());
 
 		createGameJodiJournalEntry(gameJodiTicketTransactions, vendorRole, currentUser,
 				JournalEntryStatusCode.JODI_CANCEL_TICKET);
+	}
+
+	@Override
+	public void claimJodiTicket(Long transactionId) {
+		// TODO Auto-generated method stub
+		CustomUserDetails user = (CustomUserDetails) SecurityContextHolder.getContext().getAuthentication()
+				.getPrincipal();
+
+		User currentUser = userService.getUserByUserName(user.getUsername());
+		Roles vendorRole = currentUser.getUserRoles().stream()
+				.filter(role -> RoleName.VENDOR.equals(role.getName()) || RoleName.SUB_VENDOR.equals(role.getName()))
+				.findAny().orElse(null);
+
+		GameJodiTicketTransactions gameJodiTicketTransactions = gameJodiTticketTransactionsRepository
+				.findById(transactionId)
+				.orElseThrow(() -> new GameJodiTicketNotFoundException(
+						ExceptionMessageConstants.GAME_JODI_TICKET_TRANSACTION_NOT_FOUND,
+						String.format("Game jodi ticket Transaction %d not found", transactionId)));
+
+		if (gameJodiTicketTransactions.getJodiTicket().getGameStatus().equals(GameJodiStatus.COMPLETED)) {
+			throw new InvalidGameJodiTicketTransaction(
+					ExceptionMessageConstants.GAME_JODI_TICKET_TRANSACTION_INVALID_CLAIM_NOT_ALLOWED_ON_GAME_COMPLETED);
+		}
+
+		if (gameJodiTicketTransactions.getJodiTicket().getGameStatus().equals(GameJodiStatus.CANCELED)) {
+			throw new InvalidGameJodiTicketTransaction(
+					ExceptionMessageConstants.GAME_JODI_TICKET_TRANSACTION_INVALID_CLAIM_NOT_ALLOWED_ON_GAME_CANCELED);
+		}
+
+		if (gameJodiTicketTransactions.getStatus().equals(GameJodiTransactionStatus.TRANSACTION_CANCEL)) {
+			throw new InvalidGameJodiTicketTransaction(
+					ExceptionMessageConstants.GAME_JODI_TICKET_TRANSACTION_INVALID_CLAIM_NOT_ALLOWED_ON_CANCEL_TRANSACTION);
+		}
+
+		if (gameJodiTicketTransactions.getStatus().equals(GameJodiTransactionStatus.WINING_STATUS_HOLD)
+				|| gameJodiTicketTransactions.getStatus().equals(GameJodiTransactionStatus.WINING_STATUS_LOOSE)) {
+			throw new InvalidGameJodiTicketTransaction(
+					ExceptionMessageConstants.GAME_JODI_TICKET_TRANSACTION_INVALID_WIN_STATIS_HOLD_NOT_ALLOWED_CLAIM);
+		}
+
+		if (gameJodiTicketTransactions.getStatus().equals(GameJodiTransactionStatus.WINING_STATUS_WIN)
+				&& gameJodiTicketTransactions.getClaimStatus().equals(GameJodiTransactionStatus.CLAIM_STATUS_CLAIMED)) {
+			throw new InvalidGameJodiTicketTransaction(
+					ExceptionMessageConstants.GAME_JODI_TICKET_TRANSACTION_INVALID_CLAIM_NOT_ALLOWED);
+		}
+
+		gameJodiTicketTransactions.setClaimStatus(GameJodiTransactionStatus.CLAIM_STATUS_CLAIMED);
+		gameJodiTicketTransactions.setClaimed(Instant.now());
+
+		createGameJodiJournalEntry(gameJodiTicketTransactions, vendorRole, currentUser,
+				JournalEntryStatusCode.JODI_CLAIM_TICKET);
 	}
 
 	@Override
@@ -576,9 +626,9 @@ public class GameJodiServiceImpl implements GameJodiService {
 		List<GameJodiTticketTransactionsDTO> gameJodiTticketTransactionsDTOList = gameJodiTransactionPage.getContent()
 				.stream().map(transaction -> {
 					GameJodiTicket ticket = transaction.getJodiTicket();
-					GameJodiTticketTransactionsDTOBuilder builder = GameJodiTticketTransactionsDTO.builder();
-					builder.Id(transaction.getId()).transactionCode(transaction.getTransactionId())
-							.ticketNo(ticket.getTicketNo());
+					GameJodiTticketTransactionsDTOBuilder builder = GameJodiTticketTransactionsDTO.childBuilder();
+					builder.id(transaction.getId()).transactionCode(transaction.getTransactionId())
+							.ticketCode(ticket.getTicketNo());
 					builder.totalAmount(transaction.getTotalAmount()).totalQuantity(transaction.getTotalQuantity());
 					builder.created(LocalDateTime.ofInstant(transaction.getCreated(),
 							ZoneId.of(AppConstants.TIME_ZONE_ASIA_KOLKATA)));
@@ -612,23 +662,21 @@ public class GameJodiServiceImpl implements GameJodiService {
 		List<GameJodiTicketTransactions> gameJodiTransactionPage = gameJodiTticketTransactionsRepository
 				.findGameJodiCancelTransactionDetails(gameJodiTicket, GameJodiTransactionStatus.TRANSACTION_CANCEL,
 						currentUser);
-		return gameJodiTransactionPage.stream()
-				.map(transaction -> {
-					GameJodiTicket ticket = transaction.getJodiTicket();
-					GameJodiTticketTransactionsDTOBuilder builder = GameJodiTticketTransactionsDTO.builder();
-					builder.Id(transaction.getId()).transactionCode(transaction.getTransactionId())
-							.ticketNo(ticket.getTicketNo());
-					builder.totalAmount(transaction.getTotalAmount()).totalQuantity(transaction.getTotalQuantity());
-					builder.created(LocalDateTime.ofInstant(transaction.getCreated(),
-							ZoneId.of(AppConstants.TIME_ZONE_ASIA_KOLKATA)));
-					if (Objects.nonNull(transaction.getCanceled()))
-						builder.canceled(LocalDateTime.ofInstant(transaction.getCanceled(),
-								ZoneId.of(AppConstants.TIME_ZONE_ASIA_KOLKATA)));
-					builder.startTime(ticket.getStartTime()).endTime(ticket.getEndTime())
-							.gameStatus(ticket.getGameStatus());
-					
-					return builder.build();
-				}).collect(Collectors.toList());
+		return gameJodiTransactionPage.stream().map(transaction -> {
+			GameJodiTicket ticket = transaction.getJodiTicket();
+			GameJodiTticketTransactionsDTOBuilder builder = GameJodiTticketTransactionsDTO.childBuilder();
+			builder.id(transaction.getId()).transactionCode(transaction.getTransactionId())
+					.ticketCode(ticket.getTicketNo());
+			builder.totalAmount(transaction.getTotalAmount()).totalQuantity(transaction.getTotalQuantity());
+			builder.created(
+					LocalDateTime.ofInstant(transaction.getCreated(), ZoneId.of(AppConstants.TIME_ZONE_ASIA_KOLKATA)));
+			if (Objects.nonNull(transaction.getCanceled()))
+				builder.canceled(LocalDateTime.ofInstant(transaction.getCanceled(),
+						ZoneId.of(AppConstants.TIME_ZONE_ASIA_KOLKATA)));
+			builder.startTime(ticket.getStartTime()).endTime(ticket.getEndTime()).gameStatus(ticket.getGameStatus());
+
+			return builder.build();
+		}).collect(Collectors.toList());
 	}
 
 	@Override
@@ -704,44 +752,38 @@ public class GameJodiServiceImpl implements GameJodiService {
 
 	}
 
-	@Override
-	public GameJodiTticketTransactionsDTO getGameJodiTransactionsDetail(Long transactionId) {
-		// TODO Auto-generated method stub
+	private GameJodiTticketTransactionsDTO getGameJodiTransactionsDetail(
+			GameJodiTicketTransactions gameJodiTicketTransaction) {
 		CustomUserDetails user = (CustomUserDetails) SecurityContextHolder.getContext().getAuthentication()
 				.getPrincipal();
 		Region region = new Region();
 		region.setId(user.getRegionId());
-		GameJodiTicket gameJodiTicket = new GameJodiTicket();
-		gameJodiTicket.setId(transactionId);
+		GameJodiTticketTransactionsDTOBuilder transactionsDTO = GameJodiTticketTransactionsDTO.childBuilder();
 
-		GameJodiTicketTransactions savedJameJodiTicketTransaction = gameJodiTticketTransactionsRepository
-				.findGameJodiTransactionDetailsByGameJodi(transactionId);
-
-		GameJodiTticketTransactionsDTOBuilder transactionsDTO = GameJodiTticketTransactionsDTO.builder();
-
-		transactionsDTO.Id(savedJameJodiTicketTransaction.getId())
-				.ticketNo(savedJameJodiTicketTransaction.getJodiTicket().getTicketNo())
-				.transactionCode(savedJameJodiTicketTransaction.getTransactionId());
-		transactionsDTO.totalQuantity(savedJameJodiTicketTransaction.getTotalQuantity())
-				.totalAmount(savedJameJodiTicketTransaction.getTotalAmount());
-		transactionsDTO.created(LocalDateTime.ofInstant(savedJameJodiTicketTransaction.getCreated(),
+		transactionsDTO.id(gameJodiTicketTransaction.getId())
+				.ticketCode(gameJodiTicketTransaction.getJodiTicket().getTicketNo())
+				.ticketId(gameJodiTicketTransaction.getJodiTicket().getId())
+				.transactionCode(gameJodiTicketTransaction.getTransactionId());
+		transactionsDTO.totalQuantity(gameJodiTicketTransaction.getTotalQuantity())
+				.totalAmount(gameJodiTicketTransaction.getTotalAmount());
+		transactionsDTO.created(LocalDateTime.ofInstant(gameJodiTicketTransaction.getCreated(),
 				ZoneId.of(AppConstants.TIME_ZONE_ASIA_KOLKATA)));
-		if (Objects.nonNull(savedJameJodiTicketTransaction.getCanceled()))
-			transactionsDTO.canceled(LocalDateTime.ofInstant(savedJameJodiTicketTransaction.getCanceled(),
+		if (Objects.nonNull(gameJodiTicketTransaction.getCanceled()))
+			transactionsDTO.canceled(LocalDateTime.ofInstant(gameJodiTicketTransaction.getCanceled(),
 					ZoneId.of(AppConstants.TIME_ZONE_ASIA_KOLKATA)));
 
-		transactionsDTO.startTime(savedJameJodiTicketTransaction.getJodiTicket().getStartTime());
-		transactionsDTO.endTime(savedJameJodiTicketTransaction.getJodiTicket().getEndTime());
+		transactionsDTO.startTime(gameJodiTicketTransaction.getJodiTicket().getStartTime());
+		transactionsDTO.endTime(gameJodiTicketTransaction.getJodiTicket().getEndTime());
 
-//		UserDTOBuilder userBuilder = UserDTO.builder();
-//		userBuilder.id(savedJameJodiTicketTransaction.getVendor().getId())
-//				.userName(savedJameJodiTicketTransaction.getVendor().getUserName()).contactNumber("9155887457");
-//		transactionsDTO.user(userBuilder.build());
+		UserDTOBuilder userBuilder = UserDTO.builder();
+		userBuilder.id(gameJodiTicketTransaction.getVendor().getId())
+				.userName(gameJodiTicketTransaction.getVendor().getUserName()).contactNumber("9155887457");
+		transactionsDTO.user(userBuilder.build());
 
 		List<RegionCompany> regionCompanies = regionCompanyRepository.findAllByRegion(region);
 
-		Map<Integer, List<GameJodiTicketTransactionDetailDTO>> transDetailMap = savedJameJodiTicketTransaction
-				.getDetails().stream().map(gameJodiTransactionDetail -> {
+		Map<Integer, List<GameJodiTicketTransactionDetailDTO>> transDetailMap = gameJodiTicketTransaction.getDetails()
+				.stream().map(gameJodiTransactionDetail -> {
 					Company originalCompany = gameJodiTransactionDetail.getDetailId().getCompany();
 					RegionCompany regionCompany = regionCompanies.stream().filter(
 							obj -> obj.getRegionCompanyId().getCompany().getId().equals(originalCompany.getId()))
@@ -770,6 +812,21 @@ public class GameJodiServiceImpl implements GameJodiService {
 	}
 
 	@Override
+	public GameJodiTticketTransactionsDTO getGameJodiTransactionsDetail(Long transactionId) {
+		// TODO Auto-generated method stub
+		GameJodiTicketTransactions savedJameJodiTicketTransaction = gameJodiTticketTransactionsRepository
+				.findGameJodiTransactionDetailsByGameJodi(transactionId);
+
+		if (Objects.isNull(savedJameJodiTicketTransaction)) {
+			throw new GameJodiTicketTransactionNotFoundException(
+					ExceptionMessageConstants.GAME_JODI_TICKET_TRANSACTION_NOT_FOUND,
+					String.format("Game jodi ticket transaction with id %d not found", transactionId));
+		}
+
+		return getGameJodiTransactionsDetail(savedJameJodiTicketTransaction);
+	}
+
+	@Override
 	public PageDto getGameJodiJounalEntry(LocalDate entryDate, PageRequest page) {
 		Instant startTime = entryDate.atTime(LocalTime.of(0, 0, 0)).toInstant(ZoneOffset.UTC);
 		Instant endTime = entryDate.atTime(LocalTime.of(23, 59, 59)).toInstant(ZoneOffset.UTC);
@@ -784,13 +841,12 @@ public class GameJodiServiceImpl implements GameJodiService {
 				.getJodiJournalEntry(startTime, endTime, currentUser, page);
 		List<GameJodiJournalEntryDTO> gameJodiJournalEntryDTOList = gameJodiJournalEntrypage.get().map(journalEntry -> {
 			GameJodiJournalEntryDTOBuilder entryDTOBuilder = GameJodiJournalEntryDTO.builder();
-			entryDTOBuilder.createdOn(
+			entryDTOBuilder.created(
 					LocalDateTime.ofInstant(journalEntry.getCreated(), ZoneId.of(AppConstants.TIME_ZONE_ASIA_KOLKATA)));
 			entryDTOBuilder.credit(journalEntry.getCredit()).debit(journalEntry.getDebit())
 					.description(journalEntry.getJournalEntry().getDescription());
 			entryDTOBuilder.journalEntryCode(journalEntry.getJournalEntry().getJournalCode().getCode());
-			entryDTOBuilder.ticketNo(journalEntry.getTransaction().getJodiTicket().getTicketNo());
-			entryDTOBuilder.transactionCode(journalEntry.getTransaction().getTransactionId());
+			entryDTOBuilder.ticketCode(journalEntry.getGameJodiTicket().getTicketNo());
 			return entryDTOBuilder.build();
 		}).collect(Collectors.toList());
 
@@ -799,6 +855,20 @@ public class GameJodiServiceImpl implements GameJodiService {
 		pageDtoBuilder.size(gameJodiJournalEntrypage.getSize());
 		pageDtoBuilder.total(gameJodiJournalEntrypage.getTotalElements());
 		return pageDtoBuilder.build();
+	}
+
+	@Override
+	public GameJodiTransactionSummary getGameJodiJounalEntrySummary(LocalDate transactionDate) {
+		// TODO Auto-generated method stub
+		CustomUserDetails user = (CustomUserDetails) SecurityContextHolder.getContext().getAuthentication()
+				.getPrincipal();
+		User currentUser = userService.getUserByUserName(user.getUsername());
+		if (!currentUser.getUserRoles().stream()
+				.anyMatch(role -> role.getName().getRoleName().equals(RoleName.VENDOR.getRoleName()))) {
+			throw new RuntimeException("Access denied for viewing journal entry");
+		}
+		return gameJodiTticketTransactionsRepository.getGameJodiJounalEntrySummary(transactionDate,
+				currentUser.getId());
 	}
 
 	@Override

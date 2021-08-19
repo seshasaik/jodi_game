@@ -12,7 +12,6 @@ import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
 import animo.realcom.mahakubera.config.AbstractPropertiesReader;
-import animo.realcom.mahakubera.exception.gameJodi.GameJodiPlayStatusException;
 import animo.realcom.mahakubera.exception.gameJodi.GameJodiTicketNotFoundException;
 import animo.realcom.mahakubera.exception.gameJodi.GameJodiTicketTransactionNotFoundException;
 import animo.realcom.mahakubera.exception.gameJodi.InvalidGameJodiTicketTransaction;
@@ -25,8 +24,8 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 	@Autowired
 	AbstractPropertiesReader errorMessageReader;
 
-	@ExceptionHandler(value = { InvalidAuthenticatonException.class, GameJodiPlayStatusException.class,
-			GameJodiTicketNotFoundException.class, GameJodiTicketTransactionNotFoundException.class })
+	@ExceptionHandler(value = { InvalidAuthenticatonException.class, GameJodiTicketNotFoundException.class,
+			GameJodiTicketTransactionNotFoundException.class })
 	public ResponseEntity<ErrorResponse> handleApplicationGenericNotFoundException(BaseRuntimeException ex,
 			WebRequest request) {
 		return ResponseEntity.status(HttpStatus.NOT_FOUND).body(buildErrorResponse(ex, HttpStatus.NOT_FOUND));
@@ -40,16 +39,13 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 				.body(buildErrorResponse(ex, HttpStatus.INTERNAL_SERVER_ERROR));
 
 	}
-	
+
 	@ExceptionHandler(value = { InvalidGameJodiTicketTransaction.class })
 	public ResponseEntity<ErrorResponse> handleBadRequestException(BaseRuntimeException ex, WebRequest request) {
 
-		return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-				.body(buildErrorResponse(ex, HttpStatus.BAD_REQUEST));
+		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(buildErrorResponse(ex, HttpStatus.BAD_REQUEST));
 
 	}
-	
-	
 
 	private ErrorResponse buildErrorResponse(BaseRuntimeException ex, HttpStatus status) {
 

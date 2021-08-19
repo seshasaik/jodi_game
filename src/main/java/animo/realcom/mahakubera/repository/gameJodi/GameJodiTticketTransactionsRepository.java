@@ -16,6 +16,7 @@ import animo.realcom.mahakubera.entity.Region;
 import animo.realcom.mahakubera.entity.User;
 import animo.realcom.mahakubera.entity.GameJodi.GameJodiTicket;
 import animo.realcom.mahakubera.entity.GameJodi.GameJodiTicketTransactions;
+import animo.realcom.mahakubera.modal.gameJodi.GameJodiTransactionSummary;
 import animo.realcom.mahakubera.modal.gameJodi.GameJodiTticketTransactionsDTO;
 import animo.realcom.mahakubera.util.GameJodiTransactionStatus;
 
@@ -41,9 +42,14 @@ public interface GameJodiTticketTransactionsRepository extends JpaRepository<Gam
 	@Query(value = "select t1 from GameJodiTicketTransactions as t1 join fetch t1.jodiTicket as t2 join fetch t1.details as t3 join fetch t3.detailId.company as t4  where t1.id = :transactionId")
 	public GameJodiTicketTransactions findGameJodiTransactionDetailsByGameJodi(
 			@Param(value = "transactionId") Long transactionId);
-	
+
 	@Query(value = "select t1 from GameJodiTicketTransactions as t1 join fetch t1.jodiTicket  where t1.jodiTicket = :gameJodiTicket  and (t1.vendorUser = :user or t1.vendor = :user) and t1.status = :status  order by t1.canceled desc")
 	public List<GameJodiTicketTransactions> findGameJodiCancelTransactionDetails(
-			@Param(value = "gameJodiTicket") GameJodiTicket gameJodiTicket, @Param("status") GameJodiTransactionStatus status, @Param(value = "user") User user);
+			@Param(value = "gameJodiTicket") GameJodiTicket gameJodiTicket,
+			@Param("status") GameJodiTransactionStatus status, @Param(value = "user") User user);
+
+	@Query(value = "select GameJodiTransactionSummary(sum(total_amount) as totalAmount, sum(if(status = 'CANCEL',total_amount,0)) as totalCancelAmount, sum(if(wining_status = 'WIN',claim_amount,0)) as totalClaimAmount) from game_jodi_ticket_transactions where cast(created as date) = :transactionDate and vendor_id = :vendorId", nativeQuery = true)
+	GameJodiTransactionSummary getGameJodiJounalEntrySummary(@Param("transactionDate") LocalDate transactionDate,
+			@Param("vendorId") Integer vendorId);
 
 }

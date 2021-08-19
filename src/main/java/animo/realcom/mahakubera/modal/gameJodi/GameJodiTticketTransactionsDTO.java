@@ -12,28 +12,41 @@ import animo.realcom.mahakubera.util.GameJodiStatus;
 import animo.realcom.mahakubera.util.GameJodiTransactionStatus;
 import lombok.Builder;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 @Data
-@Builder
+@EqualsAndHashCode(callSuper = true)
 @JsonInclude(value = Include.NON_NULL)
-public class GameJodiTticketTransactionsDTO {
+public class GameJodiTticketTransactionsDTO extends GameJodiTicketTransactionRequestDTO {
 
-	private Long Id;
-	private String transactionCode;
-	private Short totalQuantity;
-	private Double totalAmount;
 	private String status;
 	private LocalDateTime created;
 	private LocalDateTime canceled;
 	private LocalDateTime claimed;
 	private String winningNumbers;
-	private String ticketNo;
 	private LocalTime startTime;
 	private LocalTime endTime;
 	private GameJodiStatus gameStatus;
 	private GameJodiTransactionStatus winStatus;
 	private GameJodiTransactionStatus claimStatus;
-	private UserDTO user;
 
-	private List<GameJodiTicketTransactionDetailDTO> detail;
+	@Builder(builderMethodName = "childBuilder")
+	public GameJodiTticketTransactionsDTO(Long id, Long ticketId, String ticketCode, String transactionCode,
+			short totalQuantity, Double totalAmount, UserDTO user, List<GameJodiTicketTransactionDetailDTO> detail,
+			String status, LocalDateTime created, LocalDateTime canceled, LocalDateTime claimed, String winningNumbers,
+			LocalTime startTime, LocalTime endTime, GameJodiStatus gameStatus, GameJodiTransactionStatus winStatus,
+			GameJodiTransactionStatus claimStatus) {
+		super(id, ticketId, ticketCode, transactionCode, totalQuantity, totalAmount, user, detail);
+		this.status = status;
+		this.created = created;
+		this.canceled = canceled;
+		this.claimed = claimed;
+		this.winningNumbers = winningNumbers;
+		this.startTime = startTime;
+		this.endTime = endTime;
+		this.gameStatus = gameStatus;
+		this.winStatus = winStatus;
+		this.claimStatus = claimStatus;
+	}
+
 }

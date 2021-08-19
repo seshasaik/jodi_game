@@ -21,6 +21,7 @@ public class URIConstants {
 	public static final String GAME_GODI_TRANSACTION_DETAIL = "/transaction/{transactionId}";
 	public static final String GAME_GODI_CANCELED_TRANSACTION_LIST = "/cancel-transactions";	
 	public static final String JODI_GAME_JOURNAL_ENTRY = "/journal-entry";
+	public static final String JODI_GAME_JOURNAL_ENTRY_SUMMARY = "/journal-entry-summary";
 	
 	public static final String JODI_GAME_RESULTS = "/result";
 }
