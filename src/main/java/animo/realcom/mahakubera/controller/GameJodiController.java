@@ -77,7 +77,7 @@ public class GameJodiController {
 	@PutMapping(path = URIConstants.GAME_GODI_CLAIM_TRANSACTION)
 	public ResponseEntity<SuccessResponse> claimGameJodiTransaction(
 			@PathVariable(name = "transactionId", required = true) Long transactionId) {
-		gameJodiService.cancelJodiTicket(transactionId);
+		gameJodiService.claimJodiTicket(transactionId);
 		SuccessResponse successResponse = new SuccessResponse();
 		successResponse.setMessage("Game Jodi Ticket Transaction claimed succefully");
 		return ResponseEntity.ok(successResponse);

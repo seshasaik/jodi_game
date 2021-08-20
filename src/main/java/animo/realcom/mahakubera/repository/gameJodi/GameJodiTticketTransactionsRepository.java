@@ -48,7 +48,7 @@ public interface GameJodiTticketTransactionsRepository extends JpaRepository<Gam
 			@Param(value = "gameJodiTicket") GameJodiTicket gameJodiTicket,
 			@Param("status") GameJodiTransactionStatus status, @Param(value = "user") User user);
 
-	@Query(value = "select GameJodiTransactionSummary(sum(total_amount) as totalAmount, sum(if(status = 'CANCEL',total_amount,0)) as totalCancelAmount, sum(if(wining_status = 'WIN',claim_amount,0)) as totalClaimAmount) from game_jodi_ticket_transactions where cast(created as date) = :transactionDate and vendor_id = :vendorId", nativeQuery = true)
+	@Query(name = "summarizedTransaction", nativeQuery = true)
 	GameJodiTransactionSummary getGameJodiJounalEntrySummary(@Param("transactionDate") LocalDate transactionDate,
 			@Param("vendorId") Integer vendorId);
 

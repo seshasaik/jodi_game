@@ -573,9 +573,9 @@ public class GameJodiServiceImpl implements GameJodiService {
 						ExceptionMessageConstants.GAME_JODI_TICKET_TRANSACTION_NOT_FOUND,
 						String.format("Game jodi ticket Transaction %d not found", transactionId)));
 
-		if (gameJodiTicketTransactions.getJodiTicket().getGameStatus().equals(GameJodiStatus.COMPLETED)) {
+		if (!gameJodiTicketTransactions.getJodiTicket().getGameStatus().equals(GameJodiStatus.COMPLETED)) {
 			throw new InvalidGameJodiTicketTransaction(
-					ExceptionMessageConstants.GAME_JODI_TICKET_TRANSACTION_INVALID_CLAIM_NOT_ALLOWED_ON_GAME_COMPLETED);
+					ExceptionMessageConstants.GAME_JODI_TICKET_TRANSACTION_INVALID_CLAIM_NOT_ALLOWED_ON_GAME_NOT_COMPLETED);
 		}
 
 		if (gameJodiTicketTransactions.getJodiTicket().getGameStatus().equals(GameJodiStatus.CANCELED)) {
@@ -588,13 +588,13 @@ public class GameJodiServiceImpl implements GameJodiService {
 					ExceptionMessageConstants.GAME_JODI_TICKET_TRANSACTION_INVALID_CLAIM_NOT_ALLOWED_ON_CANCEL_TRANSACTION);
 		}
 
-		if (gameJodiTicketTransactions.getStatus().equals(GameJodiTransactionStatus.WINING_STATUS_HOLD)
-				|| gameJodiTicketTransactions.getStatus().equals(GameJodiTransactionStatus.WINING_STATUS_LOOSE)) {
+		if (gameJodiTicketTransactions.getWiningStatus().equals(GameJodiTransactionStatus.WINING_STATUS_HOLD)
+				|| gameJodiTicketTransactions.getWiningStatus().equals(GameJodiTransactionStatus.WINING_STATUS_LOOSE)) {
 			throw new InvalidGameJodiTicketTransaction(
-					ExceptionMessageConstants.GAME_JODI_TICKET_TRANSACTION_INVALID_WIN_STATIS_HOLD_NOT_ALLOWED_CLAIM);
+					ExceptionMessageConstants.GAME_JODI_TICKET_TRANSACTION_INVALID_WIN_STATIS_HOLD_OR_LOOSE_NOT_ALLOWED_CLAIM);
 		}
 
-		if (gameJodiTicketTransactions.getStatus().equals(GameJodiTransactionStatus.WINING_STATUS_WIN)
+		if (gameJodiTicketTransactions.getWiningStatus().equals(GameJodiTransactionStatus.WINING_STATUS_WIN)
 				&& gameJodiTicketTransactions.getClaimStatus().equals(GameJodiTransactionStatus.CLAIM_STATUS_CLAIMED)) {
 			throw new InvalidGameJodiTicketTransaction(
 					ExceptionMessageConstants.GAME_JODI_TICKET_TRANSACTION_INVALID_CLAIM_NOT_ALLOWED);

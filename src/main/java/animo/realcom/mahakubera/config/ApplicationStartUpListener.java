@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component;
 import animo.realcom.mahakubera.service.jodiGame.GameJodiService;
 
 @Component
-public class ApplicationStarUpListener implements ApplicationRunner {
+public class ApplicationStartUpListener implements ApplicationRunner {
 
 	@Autowired
 	GameJodiService gameJodiService;
