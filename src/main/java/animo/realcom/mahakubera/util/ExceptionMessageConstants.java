@@ -3,6 +3,10 @@ package animo.realcom.mahakubera.util;
 public class ExceptionMessageConstants {
 
 	public static final String ERROR_COMMON_MSG_ERCM000001 = "ERROR-COMMON-MSG_ER001001";
+	public static final String ERROR_REGION_NOT_FOUND = "ERROR-COMMON-MSG-REGION-NOT-FOUND_ER001002";
+	public static final String ERROR_COUNTRY_NOT_FOUND = "ERROR-COMMON-MSG-COUNTRY-NOT-FOUND_ER001003";
+	
+	public static final String ERROR_USER_ACOUNT_NOT_FOUND = "ERROR-USER-ACOUNT-NOT-FOUND_ER000003";
 
 	public static final String LOGIN_ACOUNT_INVALID = "ERROR-LOGIN-INVALID_ER000001";
 	public static final String LOGIN_ACOUNT_LOCKED = "ERROR-LOGIN-ACOUNT-LOCKED_ER000002";

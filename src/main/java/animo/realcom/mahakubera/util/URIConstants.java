@@ -6,6 +6,14 @@ public class URIConstants {
 	public static final String LOGIN = "/login";
 	public static final String PROFILE = "/profile";
 	
+	public static final String COMMON_BASE_PATH = "/common";
+	
+	public static final String COUNTRY = "/country";
+	public static final String COUNTRY_REGION = COUNTRY + "/{countryId}/region";
+	public static final String ROLES = "/role";
+	
+	public static final String USER_BASE_PATH = "/user";
+	public static final String USER= "/{userId}";
 		
 	public static final String GAME_JODI_BASE_PATH = "/game-jodi";
 	
@@ -24,4 +32,5 @@ public class URIConstants {
 	public static final String JODI_GAME_JOURNAL_ENTRY_SUMMARY = "/journal-entry-summary";
 	
 	public static final String JODI_GAME_RESULTS = "/result";
+	public static final String JODI_GAME_WALLET = "/wallet";
 }

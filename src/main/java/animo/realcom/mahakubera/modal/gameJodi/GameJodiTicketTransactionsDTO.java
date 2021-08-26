@@ -17,7 +17,7 @@ import lombok.EqualsAndHashCode;
 @Data
 @EqualsAndHashCode(callSuper = true)
 @JsonInclude(value = Include.NON_NULL)
-public class GameJodiTticketTransactionsDTO extends GameJodiTicketTransactionRequestDTO {
+public class GameJodiTicketTransactionsDTO extends GameJodiTicketTransactionRequestDTO {
 
 	private String status;
 	private LocalDateTime created;
@@ -31,7 +31,7 @@ public class GameJodiTticketTransactionsDTO extends GameJodiTicketTransactionReq
 	private GameJodiTransactionStatus claimStatus;
 
 	@Builder(builderMethodName = "childBuilder")
-	public GameJodiTticketTransactionsDTO(Long id, Long ticketId, String ticketCode, String transactionCode,
+	public GameJodiTicketTransactionsDTO(Long id, Long ticketId, String ticketCode, String transactionCode,
 			short totalQuantity, Double totalAmount, UserDTO user, List<GameJodiTicketTransactionDetailDTO> detail,
 			String status, LocalDateTime created, LocalDateTime canceled, LocalDateTime claimed, String winningNumbers,
 			LocalTime startTime, LocalTime endTime, GameJodiStatus gameStatus, GameJodiTransactionStatus winStatus,

@@ -1,5 +1,6 @@
 package animo.realcom.mahakubera.serviceImpl.jodiGame;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -22,6 +23,7 @@ import java.util.stream.Stream;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
@@ -47,6 +49,8 @@ import animo.realcom.mahakubera.entity.GameJodi.GameJodiTicketTransactionDetails
 import animo.realcom.mahakubera.entity.GameJodi.GameJodiTicketTransactions;
 import animo.realcom.mahakubera.entity.GameJodi.GameJodiTicketTransactionsDetailId;
 import animo.realcom.mahakubera.entity.GameJodi.GameJodiTimings;
+import animo.realcom.mahakubera.entity.GameJodi.GameJodiVendorProfitSettings;
+import animo.realcom.mahakubera.entity.GameJodi.GameJodiWallet;
 import animo.realcom.mahakubera.entity.GameJodi.RegionCompany;
 import animo.realcom.mahakubera.exception.gameJodi.GameJodiTicketNotFoundException;
 import animo.realcom.mahakubera.exception.gameJodi.GameJodiTicketTransactionNotFoundException;
@@ -68,8 +72,8 @@ import animo.realcom.mahakubera.modal.gameJodi.GameJodiTicketTransactionDetailDT
 import animo.realcom.mahakubera.modal.gameJodi.GameJodiTicketTransactionDetailDTO.GameJodiTicketTransactionDetailDTOBuilder;
 import animo.realcom.mahakubera.modal.gameJodi.GameJodiTicketTransactionRequestDTO;
 import animo.realcom.mahakubera.modal.gameJodi.GameJodiTransactionSummary;
-import animo.realcom.mahakubera.modal.gameJodi.GameJodiTticketTransactionsDTO;
-import animo.realcom.mahakubera.modal.gameJodi.GameJodiTticketTransactionsDTO.GameJodiTticketTransactionsDTOBuilder;
+import animo.realcom.mahakubera.modal.gameJodi.GameJodiTicketTransactionsDTO;
+import animo.realcom.mahakubera.modal.gameJodi.GameJodiTicketTransactionsDTO.GameJodiTicketTransactionsDTOBuilder;
 import animo.realcom.mahakubera.modal.gameJodi.RegionCompanyDTO;
 import animo.realcom.mahakubera.modal.gameJodi.RegionCompanyDTO.RegionCompanyDTOBuilder;
 import animo.realcom.mahakubera.repository.CompanyRepository;
@@ -78,7 +82,9 @@ import animo.realcom.mahakubera.repository.gameJodi.GameJodiJournalEntryReposito
 import animo.realcom.mahakubera.repository.gameJodi.GameJodiTicketCompanyRepository;
 import animo.realcom.mahakubera.repository.gameJodi.GameJodiTicketRepository;
 import animo.realcom.mahakubera.repository.gameJodi.GameJodiTimingsRepository;
-import animo.realcom.mahakubera.repository.gameJodi.GameJodiTticketTransactionsRepository;
+import animo.realcom.mahakubera.repository.gameJodi.GameJodiTicketTransactionsRepository;
+import animo.realcom.mahakubera.repository.gameJodi.GameJodiVendorProfitSettingsRepository;
+import animo.realcom.mahakubera.repository.gameJodi.GameJodiWalletRepository;
 import animo.realcom.mahakubera.repository.gameJodi.RegionCompanyRepository;
 import animo.realcom.mahakubera.service.UserService;
 import animo.realcom.mahakubera.service.jodiGame.GameJodiService;
@@ -98,8 +104,8 @@ public class GameJodiServiceImpl implements GameJodiService {
 
 	private static final Logger log = LoggerFactory.getLogger(GameJodiServiceImpl.class);
 
-	@Value("${game-jodi.wining-ration}")
-	Integer winPercentage;
+	@Value("${game-jodi.company-profit-percent}")
+	Double companyProfitPercent;
 
 	@Autowired
 	GameJodiTicketRepository gameJodiTicketRepository;
@@ -111,7 +117,7 @@ public class GameJodiServiceImpl implements GameJodiService {
 	GameJodiTimingsRepository gameJodiTimingsRepository;
 
 	@Autowired
-	GameJodiTticketTransactionsRepository gameJodiTticketTransactionsRepository;
+	GameJodiTicketTransactionsRepository gameJodiTticketTransactionsRepository;
 
 	@Autowired
 	RegionCompanyRepository regionCompanyRepository;
@@ -126,7 +132,13 @@ public class GameJodiServiceImpl implements GameJodiService {
 	JournalEntryStatusRepository journalEntryStatusRepository;
 
 	@Autowired
+	GameJodiVendorProfitSettingsRepository gameJodiVendorProfitSettingsRepository;
+
+	@Autowired
 	UserService userService;
+
+	@Autowired
+	GameJodiWalletRepository gameJodiWalletRepository;
 
 	@Autowired
 	ApplicationUtil applicationUtil;
@@ -160,8 +172,8 @@ public class GameJodiServiceImpl implements GameJodiService {
 
 				newJodiTicketCompany.setTicketCompany(gameJodiTicketCompanyId);
 
-				int r = new Random().ints(1, 1, 8).findAny().orElse(1);
-				newJodiTicketCompany.setWinningNumbers(new Random().ints(r, 0, 100).distinct().mapToObj(String::valueOf)
+				// int r = new Random().ints(1, 1, 3).findAny().orElse(1);
+				newJodiTicketCompany.setWinningNumbers(new Random().ints(1, 0, 100).distinct().mapToObj(String::valueOf)
 						.collect(Collectors.joining(",")));
 				return newJodiTicketCompany;
 
@@ -371,7 +383,7 @@ public class GameJodiServiceImpl implements GameJodiService {
 	}
 
 	@Override
-	public GameJodiTticketTransactionsDTO saveJodiTicket(GameJodiTicketTransactionRequestDTO jodiTicket) {
+	public GameJodiTicketTransactionsDTO saveJodiTicket(GameJodiTicketTransactionRequestDTO jodiTicket) {
 
 		CustomUserDetails user = (CustomUserDetails) SecurityContextHolder.getContext().getAuthentication()
 				.getPrincipal();
@@ -484,36 +496,55 @@ public class GameJodiServiceImpl implements GameJodiService {
 
 		JournalEntryStatus journalEntryStatus = journalEntryStatusRepository.findByJournalCode(journalEntryStatusCode)
 				.get();
+		GameJodiVendorProfitSettings vendorProfitSettings = gameJodiVendorProfitSettingsRepository
+				.findByUser(currentUser);
 
-		GameJodiJournalEntry gameJodiJournalEntry = new GameJodiJournalEntry();
+		GameJodiJournalEntry firstGameJodiJournalEntry = new GameJodiJournalEntry();
 
-		gameJodiJournalEntry.setGameJodiTicket(savedJameJodiTicketTransaction.getJodiTicket());
+		firstGameJodiJournalEntry.setGameJodiTicket(savedJameJodiTicketTransaction.getJodiTicket());
 
-		gameJodiJournalEntry.setJournalEntry(journalEntryStatus);
+		firstGameJodiJournalEntry.setJournalEntry(journalEntryStatus);
 
 		if (Objects.nonNull(vendorRole)) {
-			gameJodiJournalEntry.setVendor(currentUser);
+			firstGameJodiJournalEntry.setVendor(currentUser);
 		} else {
-			gameJodiJournalEntry.setVendorUser(currentUser);
-			gameJodiJournalEntry.setVendor(currentUser.getParent());
+			firstGameJodiJournalEntry.setVendorUser(currentUser);
+			firstGameJodiJournalEntry.setVendor(currentUser.getParent());
 		}
+
+		GameJodiWallet wallet = gameJodiWalletRepository.findByUser(currentUser);
 
 		switch (journalEntryStatusCode) {
 		case JODI_CLAIM_TICKET:
-			gameJodiJournalEntry.setDebit(savedJameJodiTicketTransaction.getTotalAmount());
+			firstGameJodiJournalEntry.setCredit(savedJameJodiTicketTransaction.getClaimAmount());
+			wallet.setAmount(
+					wallet.getAmount().add(BigDecimal.valueOf(savedJameJodiTicketTransaction.getClaimAmount())));
 			break;
 		case JODI_PURCHASE_TICKET:
-			gameJodiJournalEntry.setCredit(savedJameJodiTicketTransaction.getTotalAmount());
+			GameJodiJournalEntry secondGameJodiJournalEntry = new GameJodiJournalEntry();
+			BeanUtils.copyProperties(firstGameJodiJournalEntry, secondGameJodiJournalEntry);
+			firstGameJodiJournalEntry.setDebit(savedJameJodiTicketTransaction.getTotalAmount());
+			BigDecimal remainAmt = wallet.getAmount()
+					.subtract(BigDecimal.valueOf(savedJameJodiTicketTransaction.getTotalAmount()));
+			secondGameJodiJournalEntry.setJournalEntry(
+					journalEntryStatusRepository.findByJournalCode(JournalEntryStatusCode.VENDOR_PROFIT_ADDED).get());
+			Double vendorProfit = (100 / vendorProfitSettings.getPercentage()
+					* savedJameJodiTicketTransaction.getTotalAmount());
+			secondGameJodiJournalEntry.setCredit(vendorProfit);
+			wallet.setAmount(remainAmt.add(BigDecimal.valueOf(vendorProfit)));
+			gameJodiJournalEntryRepository.save(secondGameJodiJournalEntry);
 			break;
 		case JODI_CANCEL_TICKET:
-			gameJodiJournalEntry.setDebit(savedJameJodiTicketTransaction.getTotalAmount());
+			firstGameJodiJournalEntry.setCredit(savedJameJodiTicketTransaction.getTotalAmount());
+			wallet.setAmount(
+					wallet.getAmount().add(BigDecimal.valueOf(savedJameJodiTicketTransaction.getTotalAmount())));
 			break;
 		default:
 			throw new RuntimeException("Invalid JournalEntryStatusCode");
 
 		}
 
-		gameJodiJournalEntryRepository.save(gameJodiJournalEntry);
+		gameJodiJournalEntryRepository.save(firstGameJodiJournalEntry);
 
 	}
 
@@ -623,10 +654,10 @@ public class GameJodiServiceImpl implements GameJodiService {
 			gameJodiTransactionPage = gameJodiTticketTransactionsRepository
 					.findGameJodiTransactionDetailsByDate(gameDate, currentUser, page);
 		}
-		List<GameJodiTticketTransactionsDTO> gameJodiTticketTransactionsDTOList = gameJodiTransactionPage.getContent()
+		List<GameJodiTicketTransactionsDTO> gameJodiTticketTransactionsDTOList = gameJodiTransactionPage.getContent()
 				.stream().map(transaction -> {
 					GameJodiTicket ticket = transaction.getJodiTicket();
-					GameJodiTticketTransactionsDTOBuilder builder = GameJodiTticketTransactionsDTO.childBuilder();
+					GameJodiTicketTransactionsDTOBuilder builder = GameJodiTicketTransactionsDTO.childBuilder();
 					builder.id(transaction.getId()).transactionCode(transaction.getTransactionId())
 							.ticketCode(ticket.getTicketNo());
 					builder.totalAmount(transaction.getTotalAmount()).totalQuantity(transaction.getTotalQuantity());
@@ -652,7 +683,7 @@ public class GameJodiServiceImpl implements GameJodiService {
 	}
 
 	@Override
-	public List<GameJodiTticketTransactionsDTO> getGameJodiCancelTransactions(Long gameId) {
+	public List<GameJodiTicketTransactionsDTO> getGameJodiCancelTransactions(Long gameId) {
 		// TODO Auto-generated method stub
 		CustomUserDetails user = (CustomUserDetails) SecurityContextHolder.getContext().getAuthentication()
 				.getPrincipal();
@@ -664,7 +695,7 @@ public class GameJodiServiceImpl implements GameJodiService {
 						currentUser);
 		return gameJodiTransactionPage.stream().map(transaction -> {
 			GameJodiTicket ticket = transaction.getJodiTicket();
-			GameJodiTticketTransactionsDTOBuilder builder = GameJodiTticketTransactionsDTO.childBuilder();
+			GameJodiTicketTransactionsDTOBuilder builder = GameJodiTicketTransactionsDTO.childBuilder();
 			builder.id(transaction.getId()).transactionCode(transaction.getTransactionId())
 					.ticketCode(ticket.getTicketNo());
 			builder.totalAmount(transaction.getTotalAmount()).totalQuantity(transaction.getTotalQuantity());
@@ -686,7 +717,7 @@ public class GameJodiServiceImpl implements GameJodiService {
 		GameJodiTicket gameJodiTicket = getNextGame(gameDate);
 
 		clearPastGameJodiTicket();
-		gameJodiTticketTransactionsRepository.prepareGameResult(gameJodiTicket.getId(), winPercentage);
+		gameJodiTticketTransactionsRepository.prepareGameResult(gameJodiTicket.getId(), companyProfitPercent);
 
 	}
 
@@ -752,13 +783,13 @@ public class GameJodiServiceImpl implements GameJodiService {
 
 	}
 
-	private GameJodiTticketTransactionsDTO getGameJodiTransactionsDetail(
+	private GameJodiTicketTransactionsDTO getGameJodiTransactionsDetail(
 			GameJodiTicketTransactions gameJodiTicketTransaction) {
 		CustomUserDetails user = (CustomUserDetails) SecurityContextHolder.getContext().getAuthentication()
 				.getPrincipal();
 		Region region = new Region();
 		region.setId(user.getRegionId());
-		GameJodiTticketTransactionsDTOBuilder transactionsDTO = GameJodiTticketTransactionsDTO.childBuilder();
+		GameJodiTicketTransactionsDTOBuilder transactionsDTO = GameJodiTicketTransactionsDTO.childBuilder();
 
 		transactionsDTO.id(gameJodiTicketTransaction.getId())
 				.ticketCode(gameJodiTicketTransaction.getJodiTicket().getTicketNo())
@@ -777,7 +808,7 @@ public class GameJodiServiceImpl implements GameJodiService {
 
 		UserDTOBuilder userBuilder = UserDTO.builder();
 		userBuilder.id(gameJodiTicketTransaction.getVendor().getId())
-				.userName(gameJodiTicketTransaction.getVendor().getUserName()).contactNumber("9155887457");
+				.userName(gameJodiTicketTransaction.getVendor().getUserName()).mobile("9155887457");
 		transactionsDTO.user(userBuilder.build());
 
 		List<RegionCompany> regionCompanies = regionCompanyRepository.findAllByRegion(region);
@@ -812,7 +843,7 @@ public class GameJodiServiceImpl implements GameJodiService {
 	}
 
 	@Override
-	public GameJodiTticketTransactionsDTO getGameJodiTransactionsDetail(Long transactionId) {
+	public GameJodiTicketTransactionsDTO getGameJodiTransactionsDetail(Long transactionId) {
 		// TODO Auto-generated method stub
 		GameJodiTicketTransactions savedJameJodiTicketTransaction = gameJodiTticketTransactionsRepository
 				.findGameJodiTransactionDetailsByGameJodi(transactionId);
@@ -915,6 +946,17 @@ public class GameJodiServiceImpl implements GameJodiService {
 		pageDtoBuilder.size(gameJodiTicketpage.getSize());
 		pageDtoBuilder.total(gameJodiTicketpage.getTotalElements());
 		return pageDtoBuilder.build();
+	}
+
+	@Override
+	public GameJodiWallet getGameJodiWallet() {
+		// TODO Auto-generated method stub
+
+		CustomUserDetails user = (CustomUserDetails) SecurityContextHolder.getContext().getAuthentication()
+				.getPrincipal();
+		User currentUser = userService.getUserByUserName(user.getUsername());
+
+		return gameJodiWalletRepository.findByUser(currentUser);
 	}
 
 }

@@ -65,7 +65,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 		// We don't need CSRF for this example
 		httpSecurity.csrf().disable()
 				// dont authenticate this particular request
-				.authorizeRequests().antMatchers(URIConstants.VERSION + URIConstants.LOGIN).permitAll().
+				.authorizeRequests().antMatchers(URIConstants.VERSION + URIConstants.USER_BASE_PATH + URIConstants.LOGIN).permitAll().
 				antMatchers(URIConstants.VERSION + URIConstants.JODI_GAME_RECENT_DRAW_RESULT).permitAll().
 				// all other requests need to be authenticated
 				anyRequest().authenticated().and().

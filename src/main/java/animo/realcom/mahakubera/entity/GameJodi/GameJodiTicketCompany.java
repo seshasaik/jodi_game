@@ -1,6 +1,7 @@
 package animo.realcom.mahakubera.entity.GameJodi;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 
 import javax.persistence.EmbeddedId;
 import javax.persistence.Entity;
@@ -23,5 +24,11 @@ public class GameJodiTicketCompany implements Serializable {
 	@EmbeddedId
 	private GameJodiTicketCompanyId ticketCompany;
 	private String winningNumbers;
+	
+	private Double companyProfitPercent;
+	private BigDecimal grossAmount;
+	private BigDecimal claimAmount;
+	private BigDecimal companyProfit;
+	private BigDecimal netAmount;
 
 }

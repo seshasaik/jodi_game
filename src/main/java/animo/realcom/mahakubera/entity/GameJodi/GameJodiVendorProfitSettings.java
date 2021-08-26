@@ -1,8 +1,5 @@
 package animo.realcom.mahakubera.entity.GameJodi;
 
-import java.math.BigDecimal;
-
-import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -15,20 +12,16 @@ import lombok.Data;
 
 @Data
 @Entity
-public class GameJodiWallet {
-
-	public GameJodiWallet() {
-		// TODO Auto-generated constructor stub
-	}
+public class GameJodiVendorProfitSettings {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Integer id;
 
-	@ManyToOne(cascade = CascadeType.REMOVE)
+	private Double percentage;
+
+	@ManyToOne
 	@JoinColumn(name = "user_id")
 	private User user;
-
-	private BigDecimal amount;
 
 }

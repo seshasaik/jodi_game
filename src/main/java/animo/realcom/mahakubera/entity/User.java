@@ -15,6 +15,7 @@ import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
 import org.springframework.security.core.GrantedAuthority;
@@ -39,6 +40,7 @@ public class User {
 	private String password;
 	private short enabled = 1;
 	private LocalDateTime lastLogin;
+	private String mobile;
 
 	@ManyToMany(fetch = FetchType.LAZY)
 	@JoinTable(name = "user_roles", joinColumns = {
@@ -52,10 +54,13 @@ public class User {
 
 	@OneToMany(fetch = FetchType.LAZY, mappedBy = "parent")
 	List<User> child;
-	
+
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "created_by")
 	User parent;
+
+	@OneToOne(mappedBy = "user")
+	animo.realcom.mahakubera.entity.UserDetails userDetails;
 
 	public User() {
 		// TODO Auto-generated constructor stub

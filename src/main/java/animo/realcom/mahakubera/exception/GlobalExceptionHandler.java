@@ -25,7 +25,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 	AbstractPropertiesReader errorMessageReader;
 
 	@ExceptionHandler(value = { InvalidAuthenticatonException.class, GameJodiTicketNotFoundException.class,
-			GameJodiTicketTransactionNotFoundException.class })
+			GameJodiTicketTransactionNotFoundException.class, UserNotFoundException.class })
 	public ResponseEntity<ErrorResponse> handleApplicationGenericNotFoundException(BaseRuntimeException ex,
 			WebRequest request) {
 		return ResponseEntity.status(HttpStatus.NOT_FOUND).body(buildErrorResponse(ex, HttpStatus.NOT_FOUND));
