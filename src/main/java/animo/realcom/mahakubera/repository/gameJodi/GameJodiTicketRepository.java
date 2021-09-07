@@ -28,11 +28,15 @@ public interface GameJodiTicketRepository extends JpaRepository<GameJodiTicket, 
 	List<GameJodiTicket> findRecentCompletedGameJodiResult(@Param("gameDate") LocalDate gameDate,
 			@Param("gameStatus") GameJodiStatus status, Pageable page);
 
-	@Query(value = "select tkt from GameJodiTicket tkt where gameDate = :gameDate and gameStatus in(:gameStatusList) order by gameJodiTime.id asc,  ticketIndex asc")
+	@Query(value = "select tkt from GameJodiTicket tkt where gameDate = :gameDate and gameStatus in(:gameStatusList) order by ticketIndex asc")
 	List<GameJodiTicket> findNextGame(@Param("gameDate") LocalDate gameDate,
 			@Param("gameStatusList") List<GameJodiStatus> gameStatus, Pageable page);
+	
+	@Query(value = "select tkt from GameJodiTicket tkt where gameDate = :gameDate and gameStatus = :gameStatus order by ticketIndex asc")
+	List<GameJodiTicket> findFutureGame(@Param("gameDate") LocalDate gameDate,
+			@Param("gameStatus") GameJodiStatus gameStatus);
 
-	@Query(value = "select tkt from GameJodiTicket tkt where gameDate <= :gameDate and gameStatus not in(:gameStatusList) order by gameJodiTime.id asc,  ticketIndex asc")
+	@Query(value = "select tkt from GameJodiTicket tkt where gameDate <= :gameDate and gameStatus not in(:gameStatusList) order by ticketIndex asc")
 	List<GameJodiTicket> findGameByGameDateAndGameStatusNotIn(@Param("gameDate") LocalDate gameDate,
 			@Param("gameStatusList") List<GameJodiStatus> gameStatus);
 
@@ -44,5 +48,7 @@ public interface GameJodiTicketRepository extends JpaRepository<GameJodiTicket, 
 			GameJodiStatus gameStatus);
 
 	Optional<GameJodiTicket> findTop1ByGameDateOrderByTicketIndexDesc(LocalDate localDate);
+	
+	Optional<GameJodiTicket> findTop1ByGameDateAndResultStatusOrderByTicketIndexDesc(LocalDate localDate, GameJodiStatus gameStatus);
 
 }

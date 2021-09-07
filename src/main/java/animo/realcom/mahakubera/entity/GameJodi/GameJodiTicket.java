@@ -49,6 +49,9 @@ public class GameJodiTicket {
 	private Instant updated;
 	@Convert(converter = GameJodiStatusConverter.class)
 	private GameJodiStatus gameStatus = GameJodiStatus.YET_TO_START;
+	
+	@Convert(converter = GameJodiStatusConverter.class)
+	private GameJodiStatus resultStatus = GameJodiStatus.RESULT_NON_DECLARED;
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "game_time")

@@ -25,6 +25,7 @@ import animo.realcom.mahakubera.modal.gameJodi.GameJodiGlobalTimingDTO;
 import animo.realcom.mahakubera.modal.gameJodi.GameJodiTicketDTO;
 import animo.realcom.mahakubera.modal.gameJodi.GameJodiTicketTransactionRequestDTO;
 import animo.realcom.mahakubera.modal.gameJodi.GameJodiTransactionSummary;
+import animo.realcom.mahakubera.modal.gameJodi.GameJodiWalletDTO;
 import animo.realcom.mahakubera.modal.gameJodi.GameJodiTicketTransactionsDTO;
 import animo.realcom.mahakubera.modal.gameJodi.RegionCompanyDTO;
 import animo.realcom.mahakubera.modal.response.SuccessResponse;
@@ -53,9 +54,20 @@ public class GameJodiController {
 		return ResponseEntity.ok(gameJodiService.getNextGame());
 	}
 
+	@GetMapping(path = URIConstants.GAME_JODI_FUTURE_GAME)
+	public ResponseEntity<List<GameJodiTicketDTO>> getFutureGame() {
+		return ResponseEntity.ok(gameJodiService.getFutureGames());
+	}
+
 	@GetMapping(path = URIConstants.JODI_GAME_RECENT_DRAW_RESULT)
 	public ResponseEntity<GameJodiTicketDTO> getRecentGameJodiDrawDetails() {
 		GameJodiTicketDTO gameJodiTicket = gameJodiService.getRecentRegionCompanyDrawResult();
+		return ResponseEntity.ok(gameJodiTicket);
+	}
+
+	@GetMapping(path = URIConstants.JODI_GAME_CURRENT_DRAW_RESULT_STATUS)
+	public ResponseEntity<GameJodiTicketDTO> getCurrentGameJodiDrawStatus(@PathVariable Long gameJodiTicketId) {
+		GameJodiTicketDTO gameJodiTicket = gameJodiService.getCurrentGameDrawStatus(gameJodiTicketId);
 		return ResponseEntity.ok(gameJodiTicket);
 	}
 
@@ -99,6 +111,14 @@ public class GameJodiController {
 		return ResponseEntity.ok(gameJodiService.getGameJodiCancelTransactions(gameId));
 	}
 
+	@GetMapping(path = URIConstants.GAME_GODI_WINING_TRANSACTION_LIST)
+	public ResponseEntity<List<GameJodiTicketTransactionsDTO>> getGameJodiWiningTransaction(
+			@RequestParam(name = "transactionDate", required = false) LocalDate transactionDate,
+			@RequestParam(name = "page-index") int pageIndex, @RequestParam(name = "page-size") int pageSize) {
+		PageRequest page = PageRequest.of(pageIndex, pageSize, Sort.by(Direction.DESC, "created"));
+		return ResponseEntity.ok(gameJodiService.getGameJodiWiningTransactions(transactionDate, page));
+	}
+
 	@GetMapping(path = URIConstants.GAME_GODI_TRANSACTION_DETAIL)
 	public ResponseEntity<GameJodiTicketTransactionsDTO> getGameJodiTransactionDetail(
 			@PathVariable(name = "transactionId", required = true) Long transactionId) {
@@ -133,7 +153,7 @@ public class GameJodiController {
 	}
 
 	@GetMapping(path = URIConstants.JODI_GAME_WALLET)
-	public ResponseEntity<GameJodiWallet> getGameJodiWallet() {
+	public ResponseEntity<GameJodiWalletDTO> getGameJodiWallet() {
 		return ResponseEntity.ok(gameJodiService.getGameJodiWallet());
 	}
 

@@ -71,9 +71,11 @@ import animo.realcom.mahakubera.modal.gameJodi.GameJodiTicketDTO.GameJodiTicketD
 import animo.realcom.mahakubera.modal.gameJodi.GameJodiTicketTransactionDetailDTO;
 import animo.realcom.mahakubera.modal.gameJodi.GameJodiTicketTransactionDetailDTO.GameJodiTicketTransactionDetailDTOBuilder;
 import animo.realcom.mahakubera.modal.gameJodi.GameJodiTicketTransactionRequestDTO;
-import animo.realcom.mahakubera.modal.gameJodi.GameJodiTransactionSummary;
 import animo.realcom.mahakubera.modal.gameJodi.GameJodiTicketTransactionsDTO;
 import animo.realcom.mahakubera.modal.gameJodi.GameJodiTicketTransactionsDTO.GameJodiTicketTransactionsDTOBuilder;
+import animo.realcom.mahakubera.modal.gameJodi.GameJodiTransactionSummary;
+import animo.realcom.mahakubera.modal.gameJodi.GameJodiWalletDTO;
+import animo.realcom.mahakubera.modal.gameJodi.GameJodiWalletDTO.GameJodiWalletDTOBuilder;
 import animo.realcom.mahakubera.modal.gameJodi.RegionCompanyDTO;
 import animo.realcom.mahakubera.modal.gameJodi.RegionCompanyDTO.RegionCompanyDTOBuilder;
 import animo.realcom.mahakubera.repository.CompanyRepository;
@@ -81,8 +83,8 @@ import animo.realcom.mahakubera.repository.JournalEntryStatusRepository;
 import animo.realcom.mahakubera.repository.gameJodi.GameJodiJournalEntryRepository;
 import animo.realcom.mahakubera.repository.gameJodi.GameJodiTicketCompanyRepository;
 import animo.realcom.mahakubera.repository.gameJodi.GameJodiTicketRepository;
-import animo.realcom.mahakubera.repository.gameJodi.GameJodiTimingsRepository;
 import animo.realcom.mahakubera.repository.gameJodi.GameJodiTicketTransactionsRepository;
+import animo.realcom.mahakubera.repository.gameJodi.GameJodiTimingsRepository;
 import animo.realcom.mahakubera.repository.gameJodi.GameJodiVendorProfitSettingsRepository;
 import animo.realcom.mahakubera.repository.gameJodi.GameJodiWalletRepository;
 import animo.realcom.mahakubera.repository.gameJodi.RegionCompanyRepository;
@@ -343,11 +345,25 @@ public class GameJodiServiceImpl implements GameJodiService {
 
 					return gameJodiTicketCompanyDTOBuilder.build();
 				}).collect(Collectors.toList());
-		builder.id(gameJodiTicket.getId()).companies(ticketCompaniesDtoList);
+		builder.companies(ticketCompaniesDtoList);
+		populateGameJodiTicketDto(builder, gameJodiTicket);
+		return builder.build();
+	}
+
+	@Override
+	public GameJodiTicketDTO getCurrentGameDrawStatus(Long gameJodiTicketId) {
+		GameJodiTicket gameJodiTicket = gameJodiTicketRepository.findById(gameJodiTicketId)
+				.orElseThrow(() -> new GameJodiTicketNotFoundException());
+		GameJodiTicketDTOBuilder builder = GameJodiTicketDTO.builder();
+		populateGameJodiTicketDto(builder, gameJodiTicket);
+		return builder.build();
+	}
+
+	private void populateGameJodiTicketDto(GameJodiTicketDTOBuilder builder, GameJodiTicket gameJodiTicket) {
+		builder.id(gameJodiTicket.getId());
 		builder.startTime(gameJodiTicket.getStartTime()).endTime(gameJodiTicket.getEndTime());
 		builder.ticketNo(gameJodiTicket.getTicketNo()).date(gameJodiTicket.getGameDate());
-		builder.gameStatus(gameJodiTicket.getGameStatus());
-		return builder.build();
+		builder.gameStatus(gameJodiTicket.getGameStatus()).resultStatus(gameJodiTicket.getResultStatus());
 	}
 
 	@Override
@@ -380,6 +396,25 @@ public class GameJodiServiceImpl implements GameJodiService {
 
 		return builder.build();
 
+	}
+
+	@Override
+	public List<GameJodiTicketDTO> getFutureGames() {
+		LocalDate gameDate = applicationUtil.getCurrentLocalDate(null);
+		List<GameJodiTicket> gameJodiTicketList = gameJodiTicketRepository.findFutureGame(gameDate,
+				GameJodiStatus.YET_TO_START);
+
+		if (gameJodiTicketList.isEmpty()) {
+			throw new GameJodiTicketNotFoundException();
+		}
+
+		return gameJodiTicketList.stream().map(gameJodiTicket -> {
+			GameJodiTicketDTOBuilder builder = GameJodiTicketDTO.builder();
+
+			builder.id(gameJodiTicket.getId()).ticketNo(gameJodiTicket.getTicketNo());
+			builder.endTime(gameJodiTicket.getEndTime()).startTime(gameJodiTicket.getStartTime());
+			return builder.build();
+		}).collect(Collectors.toList());
 	}
 
 	@Override
@@ -528,7 +563,7 @@ public class GameJodiServiceImpl implements GameJodiService {
 					.subtract(BigDecimal.valueOf(savedJameJodiTicketTransaction.getTotalAmount()));
 			secondGameJodiJournalEntry.setJournalEntry(
 					journalEntryStatusRepository.findByJournalCode(JournalEntryStatusCode.VENDOR_PROFIT_ADDED).get());
-			Double vendorProfit = (100 / vendorProfitSettings.getPercentage()
+			Double vendorProfit = (vendorProfitSettings.getPercentage() / 100
 					* savedJameJodiTicketTransaction.getTotalAmount());
 			secondGameJodiJournalEntry.setCredit(vendorProfit);
 			wallet.setAmount(remainAmt.add(BigDecimal.valueOf(vendorProfit)));
@@ -711,6 +746,13 @@ public class GameJodiServiceImpl implements GameJodiService {
 	}
 
 	@Override
+	public List<GameJodiTicketTransactionsDTO> getGameJodiWiningTransactions(LocalDate transactionDate,
+			PageRequest page) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
 	public void prepareGameJodiTicketResult() {
 		// TODO Auto-generated method stub
 		LocalDate gameDate = applicationUtil.getCurrentLocalDate(null);
@@ -718,6 +760,7 @@ public class GameJodiServiceImpl implements GameJodiService {
 
 		clearPastGameJodiTicket();
 		gameJodiTticketTransactionsRepository.prepareGameResult(gameJodiTicket.getId(), companyProfitPercent);
+		gameJodiTicket.setResultStatus(GameJodiStatus.RESULT_DECLARED);
 
 	}
 
@@ -949,14 +992,16 @@ public class GameJodiServiceImpl implements GameJodiService {
 	}
 
 	@Override
-	public GameJodiWallet getGameJodiWallet() {
+	public GameJodiWalletDTO getGameJodiWallet() {
 		// TODO Auto-generated method stub
 
 		CustomUserDetails user = (CustomUserDetails) SecurityContextHolder.getContext().getAuthentication()
 				.getPrincipal();
 		User currentUser = userService.getUserByUserName(user.getUsername());
-
-		return gameJodiWalletRepository.findByUser(currentUser);
+		GameJodiWallet wallet = gameJodiWalletRepository.findByUser(currentUser);
+		GameJodiWalletDTOBuilder builder = GameJodiWalletDTO.builder();
+		builder.userName(currentUser.getUserName()).id(wallet.getId()).amount(wallet.getAmount());
+		return builder.build();
 	}
 
 }

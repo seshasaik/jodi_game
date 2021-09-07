@@ -4,16 +4,14 @@ import java.time.LocalDate;
 import java.util.List;
 
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Slice;
 
-import animo.realcom.mahakubera.entity.GameJodi.GameJodiTicket;
-import animo.realcom.mahakubera.entity.GameJodi.GameJodiWallet;
 import animo.realcom.mahakubera.modal.PageDto;
 import animo.realcom.mahakubera.modal.gameJodi.GameJodiGlobalTimingDTO;
 import animo.realcom.mahakubera.modal.gameJodi.GameJodiTicketDTO;
 import animo.realcom.mahakubera.modal.gameJodi.GameJodiTicketTransactionRequestDTO;
-import animo.realcom.mahakubera.modal.gameJodi.GameJodiTransactionSummary;
 import animo.realcom.mahakubera.modal.gameJodi.GameJodiTicketTransactionsDTO;
+import animo.realcom.mahakubera.modal.gameJodi.GameJodiTransactionSummary;
+import animo.realcom.mahakubera.modal.gameJodi.GameJodiWalletDTO;
 import animo.realcom.mahakubera.modal.gameJodi.RegionCompanyDTO;
 
 public interface GameJodiService {
@@ -27,14 +25,20 @@ public interface GameJodiService {
 	public List<RegionCompanyDTO> getRegionCompanyData();
 
 	public GameJodiTicketDTO getRecentRegionCompanyDrawResult();
+	
+	public GameJodiTicketDTO getCurrentGameDrawStatus(Long gameJodiTicketId);
 
 	public GameJodiTicketDTO getNextGame();
+	
+	public List<GameJodiTicketDTO> getFutureGames();
 
 	public void getGameByGameId(Long gameId);
 
 	public PageDto getGameJodiTransactions(LocalDate transactionDate, PageRequest page);
 	
 	public List<GameJodiTicketTransactionsDTO> getGameJodiCancelTransactions(Long gameId);
+	
+	public List<GameJodiTicketTransactionsDTO> getGameJodiWiningTransactions(LocalDate transactionDate, PageRequest page);
 	
 	public GameJodiTicketTransactionsDTO getGameJodiTransactionsDetail(Long gameId);
 
@@ -54,6 +58,6 @@ public interface GameJodiService {
 	
 	public PageDto getGameJodiResult(LocalDate gameDate, PageRequest page);
 	
-	public GameJodiWallet getGameJodiWallet();
+	public GameJodiWalletDTO getGameJodiWallet();
 
 }

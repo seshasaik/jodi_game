@@ -22,6 +22,7 @@ public class GameJodiTicketDTO {
 	private LocalTime endTime;
 	private LocalDate date;
 	private GameJodiStatus gameStatus;
+	private GameJodiStatus resultStatus;
 	private List<GameJodiTicketCompanyDTO> companies;
 
 }

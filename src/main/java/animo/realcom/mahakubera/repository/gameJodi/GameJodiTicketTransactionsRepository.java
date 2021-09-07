@@ -47,6 +47,11 @@ public interface GameJodiTicketTransactionsRepository extends JpaRepository<Game
 	public List<GameJodiTicketTransactions> findGameJodiCancelTransactionDetails(
 			@Param(value = "gameJodiTicket") GameJodiTicket gameJodiTicket,
 			@Param("status") GameJodiTransactionStatus status, @Param(value = "user") User user);
+	
+	@Query(value = "select t1 from GameJodiTicketTransactions as t1 join fetch t1.jodiTicket  where t1.jodiTicket = :gameJodiTicket  and (t1.vendorUser = :user or t1.vendor = :user) and t1.status = :status  order by t1.canceled desc")
+	public List<GameJodiTicketTransactions> findGameJodiWinTransactionDetails(
+			@Param(value = "gameJodiTicket") GameJodiTicket gameJodiTicket,
+			@Param("status") GameJodiTransactionStatus status, @Param(value = "user") User user);
 
 	@Query(name = "summarizedTransaction", nativeQuery = true)
 	GameJodiTransactionSummary getGameJodiJounalEntrySummary(@Param("transactionDate") LocalDate transactionDate,

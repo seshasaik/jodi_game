@@ -33,7 +33,7 @@ import lombok.Data;
 @Data
 @Entity
 @NamedStoredProcedureQueries({
-		@NamedStoredProcedureQuery(name = "sp_prepare_game_result2", procedureName = "sp_prepare_game_result", parameters = {
+		@NamedStoredProcedureQuery(name = "sp_prepare_game_result2", procedureName = "sp_prepare_game_result2", parameters = {
 				@StoredProcedureParameter(mode = ParameterMode.IN, type = Long.class, name = "game_id"),
 				@StoredProcedureParameter(mode = ParameterMode.IN, type = Double.class, name = "company_profit_percent") }) })
 @NamedNativeQuery(name = "summarizedTransaction", query = "select sum(total_amount) as totalAmount, sum(if(status = 'CANCEL',total_amount,0)) as totalCancelAmount, sum(if(wining_status = 'WIN',claim_amount,0)) as totalClaimAmount from game_jodi_ticket_transactions where cast(created as date) = :transactionDate and vendor_id = :vendorId", resultSetMapping = "summarizedTransactionResultSetMapping")
